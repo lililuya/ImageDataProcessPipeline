@@ -1,0 +1,7 @@
+{
+  "batch_id": "synthetic-pilot-v1",
+  "source_name": "idp-generated-fixtures",
+  "access_domain": "pilot",
+  "license_status": "approved",
+  "evidence_ref": "idp-fixtures-v1-generated-without-user-data"
+}

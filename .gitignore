@@ -8,3 +8,8 @@ __pycache__/
 data/
 artifacts/
 *.log
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.coverage

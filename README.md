@@ -2,7 +2,9 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**当前状态：OpenSpec设计完成，运行时尚未实现。** 仓库中的`idp`命令、配方与manifest是拟议接口或契约示例，不能作为现成流水线运行。
+**当前状态：设计已完成，M0/M1基础能力已开始实现并部署到node95。** 已有数据契约、合成夹具、分层审计、本地内容寻址接入、PostgreSQL目录、基础任务租约及图像解码检查；完整标注、调度worker与训练发布仍待实施。
+
+实际使用见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令、配方与manifest仍为拟议接口。
 
 ## 阅读入口
 
@@ -48,7 +50,7 @@ node node_modules/@fission-ai/openspec/bin/openspec.js status --change design-im
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-当前change是`design-image-data-framework`：proposal/specs/design/tasks均已准备；任务保持未勾选。后续通过`$openspec-apply-change`或明确要求实施来推进；全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+当前change是`design-image-data-framework`：proposal/specs/design/tasks均已准备；已验收任务逐项勾选，其余保持未完成。当前正在通过`$openspec-apply-change`实施，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 

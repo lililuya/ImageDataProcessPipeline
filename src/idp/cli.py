@@ -1,0 +1,86 @@
+import argparse
+import json
+import os
+from pathlib import Path
+
+from idp.domain.models import Asset, SourceRecord, TaskSample, View
+from idp.evaluation.audit import estimate, sample_frame
+from idp.testing.fixtures import generate
+from idp.catalog.postgres import Catalog
+from idp.catalog.ingest import SourceConfig, ingest
+from idp.storage.local import LocalStore
+from idp.operators.probe import probe
+from idp.evaluation.pilot import run_pilot
+import psycopg
+
+
+def _read(path: str):
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(prog="idp", description="图像数据框架：契约、夹具与分层审计")
+    commands = parser.add_subparsers(dest="command", required=True)
+    validate = commands.add_parser("validate", help="校验数据契约 JSON")
+    validate.add_argument("kind", choices=["asset", "source", "view", "sample"])
+    validate.add_argument("path")
+    fixtures = commands.add_parser("fixtures", help="在新目录生成合成测试素材")
+    fixtures.add_argument("directory")
+    audit = commands.add_parser("audit", help="分层审核抽样与加权估计")
+    audits = audit.add_subparsers(dest="audit_command", required=True)
+    sample = audits.add_parser("sample")
+    sample.add_argument("frame")
+    sample.add_argument("allocation")
+    sample.add_argument("--seed", type=int, default=42)
+    report = audits.add_parser("estimate")
+    report.add_argument("plan")
+    db = commands.add_parser("db", help="迁移独立项目元数据库")
+    db.add_argument("action", choices=["migrate"])
+    ingestion = commands.add_parser("ingest", help="本地单文件内容寻址接入")
+    ingestion.add_argument("path")
+    ingestion.add_argument("--source-config", required=True)
+    ingestion.add_argument("--original-id", required=True)
+    decoding = commands.add_parser("probe", help="实际解码并输出基础观测，不自动筛图")
+    decoding.add_argument("path")
+    decoding.add_argument("--max-pixels", type=int, default=100_000_000)
+    decoding.add_argument("--max-frames", type=int, default=64)
+    pilot = commands.add_parser("pilot", help="只读输入的小批接入/解码/重放演练，仅输出汇总")
+    pilot.add_argument("directory")
+    pilot.add_argument("--source-config", required=True)
+    pilot.add_argument("--limit", type=int, default=64)
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "validate":
+            model = {"asset": Asset, "source": SourceRecord, "view": View, "sample": TaskSample}[args.kind]
+            model.model_validate(_read(args.path))
+            result = {"valid": True, "kind": args.kind}
+        elif args.command == "fixtures":
+            result = generate(Path(args.directory))
+        elif args.command == "pilot":
+            result = run_pilot(Path(args.directory), SourceConfig.model_validate(_read(args.source_config)),
+                               LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
+                               Catalog(os.environ["IDP_DATABASE_DSN"]), args.limit)
+        elif args.command == "probe":
+            result = probe(Path(args.path), args.max_pixels, args.max_frames)
+        elif args.command == "db":
+            Catalog(os.environ["IDP_DATABASE_DSN"]).migrate()
+            result = {"migrated": True}
+        elif args.command == "ingest":
+            checksum = ingest(Path(args.path), args.original_id,
+                              SourceConfig.model_validate(_read(args.source_config)),
+                              LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
+                              Catalog(os.environ["IDP_DATABASE_DSN"]))
+            result = {"asset_id": checksum}
+        elif args.audit_command == "sample":
+            result = sample_frame(_read(args.frame), _read(args.allocation), args.seed)
+        else:
+            result = estimate(_read(args.plan))
+    except (ValueError, OSError, KeyError, psycopg.Error) as exc:
+        # 不打印 ValidationError 的输入值，避免完整文字与来源信息进入日志。
+        parser.exit(2, f"idp: {type(exc).__name__}; input rejected\n")
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
