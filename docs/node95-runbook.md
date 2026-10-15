@@ -45,6 +45,6 @@ docker exec idp-postgres pg_dump -U idp -d idp -Fc > /mnt/hd4/ImageCaptionSystem
 
 ## 持久任务边界
 
-已实现任务键、依赖、资源类别、SKIP LOCKED领取、心跳、租约token与条件完成；当前还没有常驻worker、有限重试、限额、预算、GC和发布模块。不要据此启动无人值守全量处理。断开SSH后PostgreSQL容器继续运行；没有图片处理后台作业。
+已实现任务键、依赖、资源池、SKIP LOCKED批量领取、心跳、租约token、有限重试/隔离/人工重放、事务观测提交及有界CPU worker，见[持久处理指南](durable-processing.md)。预算、GC和发布仍待实施，不启动无人值守全量处理。断开SSH后PostgreSQL容器继续运行；worker使用有界前台命令，未注册常驻服务。
 
 真实小批数据与模型服务尚未绑定。本轮只使用合成测试素材验证工程行为，未验证标注精度、GPU吞吐或模型训练收益。

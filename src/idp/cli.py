@@ -11,11 +11,17 @@ from idp.catalog.ingest import SourceConfig, ingest
 from idp.storage.local import LocalStore
 from idp.operators.probe import probe
 from idp.evaluation.pilot import run_pilot
+from idp.execution.queue import Queue
+from idp.execution.worker import enqueue_probes, run_worker
 import psycopg
 
 
 def _read(path: str):
     return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def _catalog() -> Catalog:
+    return Catalog(os.environ["IDP_DATABASE_DSN"], os.environ.get("IDP_CATALOG_SCHEMA", "idp"))
 
 
 def main(argv=None) -> int:
@@ -48,6 +54,25 @@ def main(argv=None) -> int:
     pilot.add_argument("directory")
     pilot.add_argument("--source-config", required=True)
     pilot.add_argument("--limit", type=int, default=64)
+    jobs = commands.add_parser("jobs", help="持久任务管理，输出不含原始路径与图像内容")
+    job_commands = jobs.add_subparsers(dest="jobs_command", required=True)
+    job_commands.add_parser("metrics")
+    inspect = job_commands.add_parser("inspect")
+    inspect.add_argument("task_key")
+    retry = job_commands.add_parser("retry")
+    retry.add_argument("task_key")
+    retry.add_argument("--actor", required=True)
+    retry.add_argument("--reason", required=True)
+    pool = job_commands.add_parser("pool")
+    pool.add_argument("resource", choices=["cpu", "gpu", "api"])
+    pool.add_argument("--concurrency", type=int, required=True)
+    pool.add_argument("--paused", action="store_true")
+    enqueue = job_commands.add_parser("enqueue-probes")
+    enqueue.add_argument("--limit", type=int, default=64)
+    enqueue.add_argument("--batch-id")
+    worker = commands.add_parser("worker", help="有界CPU解码worker，不执行语义模型")
+    worker.add_argument("--max-jobs", type=int, default=64)
+    worker.add_argument("--lease-seconds", type=float, default=60)
     args = parser.parse_args(argv)
     try:
         if args.command == "validate":
@@ -56,20 +81,38 @@ def main(argv=None) -> int:
             result = {"valid": True, "kind": args.kind}
         elif args.command == "fixtures":
             result = generate(Path(args.directory))
+        elif args.command in {"jobs", "worker"}:
+            queue = Queue(_catalog())
+            if args.command == "worker":
+                result = run_worker(queue, LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
+                                    args.max_jobs, args.lease_seconds)
+            elif args.jobs_command == "metrics":
+                result = queue.metrics()
+            elif args.jobs_command == "inspect":
+                result = queue.inspect(args.task_key)
+                result = {k: v.isoformat() if hasattr(v, "isoformat") else v for k, v in result.items()}
+            elif args.jobs_command == "retry":
+                queue.replay(args.task_key, args.actor, args.reason)
+                result = {"replayed": True}
+            elif args.jobs_command == "pool":
+                queue.configure_pool(args.resource, args.concurrency, args.paused)
+                result = {"resource": args.resource, "concurrency": args.concurrency, "paused": args.paused}
+            else:
+                result = enqueue_probes(queue, args.limit, args.batch_id)
         elif args.command == "pilot":
             result = run_pilot(Path(args.directory), SourceConfig.model_validate(_read(args.source_config)),
                                LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
-                               Catalog(os.environ["IDP_DATABASE_DSN"]), args.limit)
+                               _catalog(), args.limit)
         elif args.command == "probe":
             result = probe(Path(args.path), args.max_pixels, args.max_frames)
         elif args.command == "db":
-            Catalog(os.environ["IDP_DATABASE_DSN"]).migrate()
+            _catalog().migrate()
             result = {"migrated": True}
         elif args.command == "ingest":
             checksum = ingest(Path(args.path), args.original_id,
                               SourceConfig.model_validate(_read(args.source_config)),
                               LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
-                              Catalog(os.environ["IDP_DATABASE_DSN"]))
+                              _catalog())
             result = {"asset_id": checksum}
         elif args.audit_command == "sample":
             result = sample_frame(_read(args.frame), _read(args.allocation), args.seed)

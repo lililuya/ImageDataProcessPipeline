@@ -15,7 +15,7 @@
 
 ## 环境与验证
 
-代码部署在node95的`/mnt/hd2/ImageCaptionSystem`；数据在`/mnt/hd4/ImageCaptionSystem`。本轮Windows/Python3.12结果为22 passed、4项数据库测试因未配置本地DSN而skip；node95/Linux/Python3.10连接真实PostgreSQL后为26 passed、0 skipped。node95源码包与wheel构建成功。CI配置已增加，不能把配置存在当作远端CI已成功。
+代码部署在node95的`/mnt/hd2/ImageCaptionSystem`；数据在`/mnt/hd4/ImageCaptionSystem`。首轮Windows/Python3.12结果为22 passed、4项数据库测试因未配置本地DSN而skip；node95/Linux/Python3.10连接真实PostgreSQL后为26 passed、0 skipped。node95源码包与wheel构建成功。CI配置已增加，不能把配置存在当作远端CI已成功。
 
 关键数据库测试使用随机测试schema：迁移前后资产可读、接入重放、双来源、撤回后重放不恢复许可、数据库约束、四线程独占领取、租约过期后的旧提交和心跳拒绝、依赖解锁。基础队列还不是完整生产调度器。
 
@@ -42,6 +42,18 @@
 
 ## 未完成与后续顺序
 
-真实来源许可需人工登记，当前unknown不能用于发布。下一阶段优先完成有限重试、资源/预算、对象引用与GC、持久观测、视图变换与配方、最小manifest/sidecar发布。OCR、caption、embedding、专项审核、训练器读取与模型收益均未验收。
+真实来源许可需人工登记，当前unknown不能用于发布。下一阶段优先完成预算、GC、视图变换与配方、最小manifest/sidecar发布。OCR、caption、embedding、专项审核、训练器读取与模型收益均未验收。
 
 S3适配器保持未实施；按用户当前要求，先全部使用本地硬盘。完整M0资源/成本基准仍未完成：已有CPU接入测量，GPU/API尚未绑定模型和费用。没有通过减少验收范围来勾选这些任务。
+
+## 第二轮：持久解码与故障恢复
+
+已追加数据库v3迁移，在迁移前生成私有数据库备份。实现资源池并发上限与暂停、批量领取、指数退避、有限尝试、永久错误隔离、人工重放、任务事件、持久观测与产物引用，以及会续租的有界CPU worker。指南见[持久处理与恢复](durable-processing.md)。
+
+测试覆盖真实子进程上传后强制终止、租约失效、迟到提交拒绝、数据库提交失败注入、下游可见性、并发上限与长任务心跳。人工重放保留递增token和历史事件，坏输入不会无限重试。
+
+第二轮最终验证：node95/Python3.10/真实PostgreSQL为34 passed、0 skipped；Windows非数据库测试为22 passed、12项数据库测试skip。源码包与wheel再次构建成功，OpenSpec严格校验通过。人工重放、状态检查、资源池暂停/恢复和指标命令也通过真实数据库CLI集成测试。
+
+对首轮已接入的64项真实资产执行持久解码：暂停时领取0项，恢复后64项全部成功，生成64条观测与64个已提交产物引用。输入没有重新采集或人工查看；观测仅包含元数据，不含预览、OCR或caption。图像/数据质量及训练收益未因此获得验收。
+
+重复入队并重跑后处理0项，观测仍为64条，验证成功结果不会被重复处理。当前累计完成15/70项任务；预算、GC、视图处理与发布仍保持未完成。

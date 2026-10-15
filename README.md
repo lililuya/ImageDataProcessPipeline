@@ -2,9 +2,9 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**当前状态：设计已完成，M0/M1基础能力已开始实现并部署到node95。** 已有数据契约、合成夹具、分层审计、本地内容寻址接入、PostgreSQL目录、基础任务租约及图像解码检查；完整标注、调度worker与训练发布仍待实施。
+**当前状态：设计已完成，M0/M1基础能力持续实施并部署到node95。** 已有数据契约、合成夹具、分层审计、本地接入、PostgreSQL目录、有界解码worker、资源池、租约、有限重试及持久观测；标注模型、预算、GC与训练发布仍待实施。
 
-实际使用见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令、配方与manifest仍为拟议接口。
+实际使用见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令、配方与manifest仍为拟议接口。
 
 ## 阅读入口
 

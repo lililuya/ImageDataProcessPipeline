@@ -45,6 +45,41 @@ MIGRATIONS = (
     );
     CREATE INDEX source_asset_status_idx ON source_records(asset_id,license_status);
     """,
+    """
+    ALTER TABLE jobs ADD COLUMN attempts int NOT NULL DEFAULT 0 CHECK(attempts>=0);
+    UPDATE jobs SET attempts=attempt_token;
+    ALTER TABLE jobs ADD COLUMN max_attempts int NOT NULL DEFAULT 3 CHECK(max_attempts>0);
+    ALTER TABLE jobs ADD COLUMN retry_base double precision NOT NULL DEFAULT 1 CHECK(retry_base>=0 AND retry_base<=300);
+    ALTER TABLE jobs ADD COLUMN available_at timestamptz NOT NULL DEFAULT now();
+    ALTER TABLE jobs ADD COLUMN last_error text;
+    CREATE TABLE resource_pools (
+      resource text PRIMARY KEY CHECK(resource IN ('cpu','gpu','api')),
+      concurrency int NOT NULL CHECK(concurrency>0), paused boolean NOT NULL DEFAULT false
+    );
+    INSERT INTO resource_pools(resource,concurrency) VALUES('cpu',4),('gpu',1),('api',1);
+    CREATE TABLE job_events (
+      event_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      task_key text NOT NULL REFERENCES jobs(task_key), token bigint NOT NULL,
+      event text NOT NULL, actor text NOT NULL, reason text,
+      created_at timestamptz NOT NULL DEFAULT clock_timestamp()
+    );
+    CREATE TABLE artifacts (
+      checksum text PRIMARY KEY CHECK(checksum ~ '^sha256:[0-9a-f]{64}$'),
+      uri text NOT NULL, byte_size bigint NOT NULL CHECK(byte_size>=0),
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE job_artifacts (
+      task_key text REFERENCES jobs(task_key), checksum text REFERENCES artifacts(checksum),
+      PRIMARY KEY(task_key,checksum)
+    );
+    CREATE TABLE observations (
+      task_key text PRIMARY KEY REFERENCES jobs(task_key),
+      subject_refs jsonb NOT NULL, producer jsonb NOT NULL, payload jsonb NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE INDEX job_events_task_idx ON job_events(task_key,event_id);
+    CREATE INDEX jobs_retry_idx ON jobs(resource,state,available_at);
+    """,
 )
 
 
