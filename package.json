@@ -1,0 +1,11 @@
+{
+  "name": "image-data-process-pipeline-specs",
+  "private": true,
+  "scripts": {
+    "spec:validate": "openspec validate --all --strict",
+    "spec:status": "openspec status --change design-image-data-framework"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.14.2"
+  }
+}
