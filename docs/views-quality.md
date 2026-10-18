@@ -39,7 +39,7 @@ alpha图仅用完全不透明像素统计，不将透明像素的隐藏RGB当作
 
 `quality-check`按给定领域配方独立决定accept/reject/needs_observation，保留配方摘要、完整观测摘要、缺失字段及失败字段，不向原始资产写全局好坏状态。同一观测可以被两个领域配方作不同决定。
 
-`configs/quality-unverified-example.json`未校准。accept只说明满足本次数值规则，`passes_calibrated_rules=false`时不能视作通过校准；即使数值规则通过，来源授权、监督质量、任务兼容和发布检查仍需单独完成。该接口尚不等于完整多阶段配方引擎（任务7.4仍未完成）。
+`configs/quality-unverified-example.json`未校准。accept只说明满足本次数值规则，`passes_calibrated_rules=false`时不能视作通过校准；即使数值规则通过，来源授权、监督质量、任务兼容和发布检查仍需单独完成。后续7.4新增[版本化选择配方](recipes.md)，可固定观测与决策并绑定最小发布；领域路由、采样与完整多阶段引擎仍未完成。
 
 ## 命令与数据库
 

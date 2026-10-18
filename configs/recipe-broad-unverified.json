@@ -1,0 +1,10 @@
+{
+  "name": "broad-observe-unverified",
+  "version": "1",
+  "domain": "unconfigured",
+  "stage": "broad-pretrain-reference",
+  "task_type": "t2i",
+  "calibrated": false,
+  "observations": [],
+  "rules": []
+}

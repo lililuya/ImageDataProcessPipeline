@@ -135,6 +135,35 @@ MIGRATIONS = (
     );
     CREATE INDEX release_sources_source_idx ON release_sources(source_id,release_id);
     """,
+    """
+    CREATE TABLE feature_observations (
+      observation_id text PRIMARY KEY CHECK(observation_id ~ '^sha256:[0-9a-f]{64}$'),
+      asset_id text NOT NULL REFERENCES assets(asset_id), view_id text REFERENCES views(view_id),
+      task_key text REFERENCES observations(task_key), payload jsonb NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE recipes (
+      recipe_digest text PRIMARY KEY CHECK(recipe_digest ~ '^sha256:[0-9a-f]{64}$'),
+      payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE recipe_decisions (
+      decision_id text PRIMARY KEY CHECK(decision_id ~ '^sha256:[0-9a-f]{64}$'),
+      recipe_digest text NOT NULL REFERENCES recipes(recipe_digest),
+      asset_id text NOT NULL REFERENCES assets(asset_id), view_id text REFERENCES views(view_id),
+      payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE decision_observations (
+      decision_id text REFERENCES recipe_decisions(decision_id), binding text NOT NULL,
+      observation_id text NOT NULL REFERENCES feature_observations(observation_id),
+      PRIMARY KEY(decision_id,binding)
+    );
+    CREATE TABLE release_decisions (
+      release_id text REFERENCES releases(release_id), sample_id text NOT NULL,
+      decision_id text NOT NULL REFERENCES recipe_decisions(decision_id),
+      PRIMARY KEY(release_id,sample_id),
+      FOREIGN KEY(release_id,sample_id) REFERENCES release_members(release_id,sample_id)
+    );
+    """,
 )
 
 

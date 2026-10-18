@@ -29,7 +29,7 @@ MOSS-Image补充了另一种预训练选择：在来源预处理、去重和AI�
 - 资料为官方仓库的《MOSS-Image Technical Report》，按完整技术报告进行数据工程审读。
 - 读取官方35页PDF的正文及附录，渲染核对图3、表1及附录B的过滤实验；仓库版本固定为`c1355e6b1986dfe8fba3c0455783a05899212342`。[官方报告](https://github.com/OpenMOSS/MOSS-Image/blob/c1355e6b1986dfe8fba3c0455783a05899212342/paper/MOSS_Image_Technical_Report.pdf)
 - PDF为32,234,760字节，SHA-256为`e33d75f5e2694901d6a320eedfa803425f51949c7f19fb3e70481b43a4552071`；Git blob为`0732a2c8e9f0f6279470eac7cfbb38d3541e9247`，与官方树一致。PDF和阅读缓存位于Git忽略的`.tools/papers/`，不提交二进制文档。
-- 本节为新增分析和实施建议，没有新增评分模型、自动标注或训练代码；当前完成任务仍为20/70，实际实现见[实施状态](implementation-status.md)。
+- 本节为新增分析和实施建议，没有新增评分模型、自动标注或训练代码。后续7.4已实现[版本化选择配方与评分导入](recipes.md)，最新完成任务为21/70；真实评分模型仍未接入，实际实现见[实施状态](implementation-status.md)。
 
 ### 研究目标与方法
 

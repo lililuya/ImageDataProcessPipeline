@@ -13,6 +13,8 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from idp.catalog.postgres import Catalog
+from idp.curation.recipes import SelectionInput, Subject
+from idp.curation.service import Recipes
 from idp.domain.identity import canonical_bytes, digest
 from idp.domain.models import SourceRecord, View
 from idp.releases.models import ReleasePlan
@@ -55,12 +57,30 @@ class Releases:
     def freeze(self, plan: ReleasePlan) -> dict:
         frozen = plan.frozen_payload()
         plan = ReleasePlan.model_validate(frozen)
-        recipe_digest = digest(plan.selection.model_dump(mode="json"))
+        recipe_digest = plan.selection.recipe_digest or digest(plan.selection.frozen_payload())
         rows = []
         with self.catalog.connect() as conn:
             for member in plan.members:
                 sample, caption = member.sample, member.caption
                 image = sample.images[0]
+                review_ref = digest({"annotation": caption.annotation_id, "reviewer": caption.reviewer,
+                                     "version": caption.review_version})
+                if member.decision_id is not None:
+                    decisions = Recipes(self.catalog)
+                    decision = decisions.get_decision(member.decision_id)
+                    recipe = decisions._recipe(conn, recipe_digest)
+                    if recipe.rules and not decision["passes_calibrated_rules"]:
+                        raise ValueError("RELEASE_REQUIRES_CALIBRATED_RULES")
+                    candidate = SelectionInput.model_validate(decision["input"])
+                    if (decision["recipe_digest"] != recipe_digest or decision["decision"] != "accept"
+                            or candidate.subject != Subject(asset_id=image.asset_id, view_id=image.view_id,
+                                                            checksum=image.checksum)
+                            or recipe.task_type != sample.task_type
+                            or set(candidate.annotation_refs) - {caption.annotation_id}
+                            or set(candidate.review_refs) - {review_ref}):
+                        raise ValueError("RELEASE_DECISION_MISMATCH_OR_NOT_ACCEPTED")
+                    if recipe.adapter is not None:
+                        recipe.adapter.check(sample)
                 registered = conn.execute("""SELECT v.record,v.asset_id,v.output_checksum,
                     a.record AS asset,j.state FROM views v JOIN assets a USING(asset_id)
                     JOIN jobs j USING(task_key) WHERE v.view_id=%s""", (image.view_id,)).fetchone()
@@ -85,10 +105,11 @@ class Releases:
                 record.update(caption_uri=f"files/{stem}.txt", caption_checksum=_checksum(caption.text.encode("utf-8")),
                               width=view.width, height=view.height, split=member.split,
                               recipe_digest=recipe_digest, annotation_refs=[caption.annotation_id],
-                              review_refs=[digest({"annotation": caption.annotation_id, "reviewer": caption.reviewer,
-                                                   "version": caption.review_version})],
+                              review_refs=[review_ref],
                               source_refs=list(member.source_ids),
                               sampling={"weight": member.sampling_weight, "augmentation": plan.augmentation})
+                if member.decision_id is not None:
+                    record["decision_ref"] = member.decision_id
                 rows.append(record)
             checksum = _checksum(_manifest_bytes(rows))
             release_id = digest({"plan": frozen, "manifest_checksum": checksum})
@@ -111,6 +132,9 @@ class Releases:
                     conn.execute("INSERT INTO release_members VALUES(%s,%s,%s,%s,%s,%s)",
                                  (release_id, member.sample.sample_id, image.asset_id, image.view_id,
                                   member.caption.annotation_id, member.split))
+                    if member.decision_id is not None:
+                        conn.execute("INSERT INTO release_decisions VALUES(%s,%s,%s)",
+                                     (release_id, member.sample.sample_id, member.decision_id))
                     for source_id in member.source_ids:
                         conn.execute("INSERT INTO release_sources VALUES(%s,%s) ON CONFLICT DO NOTHING",
                                      (release_id, source_id))

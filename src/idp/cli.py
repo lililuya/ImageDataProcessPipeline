@@ -17,6 +17,8 @@ from idp.operators.views import ViewConfig
 from idp.operators.quality import quality_features
 from idp.curation.numeric import NumericRecipe, evaluate_numeric
 from idp.curation.exact import snapshot_exact
+from idp.curation.recipes import FeatureObservation, Recipe, SelectionInput
+from idp.curation.service import Recipes
 from idp.releases.models import ReleasePlan
 from idp.releases.service import Releases
 import psycopg
@@ -88,6 +90,17 @@ def main(argv=None) -> int:
     check = commands.add_parser("quality-check", help="按指定数值配方评估观测，不改原始资产")
     check.add_argument("--recipe", required=True)
     check.add_argument("--observation", required=True)
+    recipe = commands.add_parser("recipe", help="冻结配方、固定观测与可追溯选择；不执行评分模型")
+    recipes = recipe.add_subparsers(dest="recipe_command", required=True)
+    recipes.add_parser("freeze").add_argument("path")
+    recipes.add_parser("import-observation").add_argument("path")
+    recipes.add_parser("capture-quality").add_argument("task_key")
+    recipes.add_parser("observation").add_argument("observation_id")
+    recipes.add_parser("inspect").add_argument("recipe_digest")
+    recipes.add_parser("decision").add_argument("decision_id")
+    decide = recipes.add_parser("decide")
+    decide.add_argument("recipe_digest")
+    decide.add_argument("--input", required=True)
     worker = commands.add_parser("worker", help="有界CPU解码、质量与视图worker，不执行语义模型")
     worker.add_argument("--max-jobs", type=int, default=64)
     worker.add_argument("--lease-seconds", type=float, default=60)
@@ -153,6 +166,22 @@ def main(argv=None) -> int:
                 result = enqueue_probes(queue, args.limit, args.batch_id)
         elif args.command == "quality":
             result = quality_features(Path(args.path))
+        elif args.command == "recipe":
+            service = Recipes(_catalog())
+            if args.recipe_command == "freeze":
+                result = service.freeze(Recipe.model_validate(_read(args.path)))
+            elif args.recipe_command == "import-observation":
+                result = service.import_observation(FeatureObservation.model_validate(_read(args.path)))
+            elif args.recipe_command == "capture-quality":
+                result = service.capture_quality(args.task_key)
+            elif args.recipe_command == "observation":
+                result = service.get_observation(args.observation_id)
+            elif args.recipe_command == "inspect":
+                result = service.get_recipe(args.recipe_digest)
+            elif args.recipe_command == "decision":
+                result = service.get_decision(args.decision_id)
+            else:
+                result = service.decide(args.recipe_digest, SelectionInput.model_validate(_read(args.input)))
         elif args.command == "quality-check":
             result = evaluate_numeric(NumericRecipe.model_validate(_read(args.recipe)), _read(args.observation))
         elif args.command == "pilot":

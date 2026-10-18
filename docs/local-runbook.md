@@ -61,7 +61,7 @@ $releaseId = $report.release.release_id
 
 计划固定以下内容：
 
-- `access_domain`与有名称、版本、说明、seed的选择配置。这是手工选择快照，完整配方引擎尚未实现。
+- `access_domain`与有名称、版本、说明、seed的选择配置。默认保留手工选择快照，也可通过[版本化选择配方](recipes.md)绑定固定决策；完整领域课程与采样引擎尚未实现。
 - `TaskSample`：当前只支持T2I、单个target、已事务提交的RGB/L PNG视图。
 - `Caption`：文本、语言、producer、来源引用、具体view_id/checksum、reviewer、review_version、review_method、review_reason。`sample.caption_ref`等于其`annotation_id`。
 - `source_ids`、train/validation/test划分和采样权重；每个固定来源须保持approved并有证据，资产访问域须匹配。

@@ -36,6 +36,13 @@ class Selection(Contract):
     version: Text
     description: Text
     seed: Annotated[int, Field(strict=True, ge=0)] = 42
+    recipe_digest: Digest | None = None
+
+    def frozen_payload(self) -> dict:
+        payload = self.model_dump(mode="json")
+        if self.recipe_digest is None:
+            payload.pop("recipe_digest")
+        return payload
 
 
 class Member(Contract):
@@ -44,6 +51,7 @@ class Member(Contract):
     source_ids: tuple[Digest, ...]
     split: Literal["train", "validation", "test"]
     sampling_weight: Annotated[float, Field(gt=0)] = 1.0
+    decision_id: Digest | None = None
 
     @model_validator(mode="after")
     def compatible(self):
@@ -74,6 +82,8 @@ class ReleasePlan(Contract):
             raise ValueError("EMPTY_RELEASE")
         ids, splits = set(), {}
         for member in self.members:
+            if (self.selection.recipe_digest is None) != (member.decision_id is None):
+                raise ValueError("RECIPE_AND_MEMBER_DECISION_REQUIRED_TOGETHER")
             sample = member.sample
             if sample.sample_id in ids:
                 raise ValueError("DUPLICATE_MEMBER")
@@ -89,7 +99,10 @@ class ReleasePlan(Contract):
 
     def frozen_payload(self) -> dict:
         payload = self.model_dump(mode="json")
+        payload["selection"] = self.selection.frozen_payload()
         payload["members"] = sorted(payload["members"], key=lambda m: m["sample"]["sample_id"])
         for member in payload["members"]:
             member["source_ids"].sort()
+            if member["decision_id"] is None:
+                member.pop("decision_id")
         return payload
