@@ -14,7 +14,7 @@
 - [技术设计与架构图](openspec/changes/design-image-data-framework/design.md)
 - [十项能力规格](openspec/changes/design-image-data-framework/specs/)
 - [分阶段实施与验收任务](openspec/changes/design-image-data-framework/tasks.md)
-- [论文、模型资料与工程映射](docs/research-evidence.md)
+- [论文、模型资料与工程映射（含MOSS-Image分析）](docs/research-evidence.md)
 - [数据契约与配方示例](docs/contracts.md)
 
 ## 全流程
