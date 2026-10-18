@@ -96,6 +96,45 @@ MIGRATIONS = (
     );
     CREATE INDEX views_asset_idx ON views(asset_id,config_digest);
     """,
+    """
+    CREATE TABLE exact_duplicate_snapshots (
+      snapshot_id text PRIMARY KEY CHECK(snapshot_id ~ '^sha256:[0-9a-f]{64}$'),
+      payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE captions (
+      annotation_id text PRIMARY KEY CHECK(annotation_id ~ '^sha256:[0-9a-f]{64}$'),
+      view_id text NOT NULL REFERENCES views(view_id),
+      checksum text NOT NULL REFERENCES artifacts(checksum), payload jsonb NOT NULL
+    );
+    CREATE TABLE releases (
+      release_id text PRIMARY KEY CHECK(release_id ~ '^sha256:[0-9a-f]{64}$'),
+      plan jsonb NOT NULL, manifest jsonb NOT NULL, manifest_checksum text NOT NULL,
+      state text NOT NULL DEFAULT 'draft'
+        CHECK(state IN ('draft','building','validating','ready','failed','withdrawn')),
+      build_token bigint NOT NULL DEFAULT 0, last_error text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE release_members (
+      release_id text REFERENCES releases(release_id), sample_id text NOT NULL,
+      asset_id text NOT NULL REFERENCES assets(asset_id),
+      view_id text NOT NULL REFERENCES views(view_id),
+      annotation_id text NOT NULL REFERENCES captions(annotation_id),
+      split text NOT NULL CHECK(split IN ('train','validation','test')),
+      PRIMARY KEY(release_id,sample_id)
+    );
+    CREATE TABLE release_sources (
+      release_id text REFERENCES releases(release_id),
+      source_id text REFERENCES source_records(source_id),
+      PRIMARY KEY(release_id,source_id)
+    );
+    CREATE TABLE release_events (
+      event_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      release_id text NOT NULL REFERENCES releases(release_id),
+      state text NOT NULL, token bigint NOT NULL, actor text NOT NULL,
+      reason text, created_at timestamptz NOT NULL DEFAULT clock_timestamp()
+    );
+    CREATE INDEX release_sources_source_idx ON release_sources(source_id,release_id);
+    """,
 )
 
 

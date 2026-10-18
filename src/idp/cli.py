@@ -16,6 +16,9 @@ from idp.execution.worker import enqueue_probes, enqueue_quality, enqueue_views,
 from idp.operators.views import ViewConfig
 from idp.operators.quality import quality_features
 from idp.curation.numeric import NumericRecipe, evaluate_numeric
+from idp.curation.exact import snapshot_exact
+from idp.releases.models import ReleasePlan
+from idp.releases.service import Releases
 import psycopg
 
 
@@ -88,6 +91,18 @@ def main(argv=None) -> int:
     worker = commands.add_parser("worker", help="有界CPU解码、质量与视图worker，不执行语义模型")
     worker.add_argument("--max-jobs", type=int, default=64)
     worker.add_argument("--lease-seconds", type=float, default=60)
+    duplicates = commands.add_parser("duplicates", help="字节重复来源簇的不可变快照")
+    duplicates.add_argument("action", choices=["exact"])
+    duplicates.add_argument("--batch-id")
+    release = commands.add_parser("release", help="最小T2I目录sidecar发布与实际读取")
+    releases = release.add_subparsers(dest="release_command", required=True)
+    freeze = releases.add_parser("freeze")
+    freeze.add_argument("plan")
+    for name in ("build", "verify", "inspect", "read"):
+        action = releases.add_parser(name)
+        action.add_argument("release_id")
+    demo = commands.add_parser("demo", help="仅用新生成的合成素材跑通本地闭环")
+    demo.add_argument("directory", help="新的、仓库外的合成演练目录")
     args = parser.parse_args(argv)
     try:
         if args.command == "validate":
@@ -96,6 +111,24 @@ def main(argv=None) -> int:
             result = {"valid": True, "kind": args.kind}
         elif args.command == "fixtures":
             result = generate(Path(args.directory))
+        elif args.command == "demo":
+            from idp.testing.demo import run_demo
+            result = run_demo(_catalog(), Path(args.directory))
+        elif args.command == "duplicates":
+            result = snapshot_exact(_catalog(), args.batch_id)
+        elif args.command == "release":
+            service = Releases(_catalog(), LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),
+                               Path(os.environ["IDP_RELEASE_ROOT"]))
+            if args.release_command == "freeze":
+                result = service.freeze(ReleasePlan.model_validate(_read(args.plan)))
+            elif args.release_command == "read":
+                count = 0
+                for loaded in service.iter_samples(args.release_id):
+                    count += 1
+                    loaded["image"].close()
+                result = {"release_id": args.release_id, "loaded": count}
+            else:
+                result = getattr(service, args.release_command)(args.release_id)
         elif args.command in {"jobs", "worker"}:
             queue = Queue(_catalog())
             if args.command == "worker":

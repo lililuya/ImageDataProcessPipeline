@@ -2,11 +2,11 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**当前状态：设计已完成，M0/M1基础能力持续实施并部署到node95。** 已有数据契约、合成夹具、分层审计、本地接入、PostgreSQL目录、有界解码worker、资源池、租约、有限重试及持久观测；标注模型、预算、GC与训练发布仍待实施。
+**当前状态：设计已完成，按OpenSpec持续实施，已完成20/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇，以及最小T2I manifest/sidecar发布和实际读取；标注模型、预算、GC、完整配方及多任务发布仍待实施。
 
-实际使用见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令、配方与manifest仍为拟议接口。
+当前优先使用[Windows本地操作手册](docs/local-runbook.md)，运行`idp demo`可用合成素材完成接入→处理→发布→实际读取。其他说明见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令与配方不代表已实现。
 
-2026-10-17新增[训练视图与质量观测](docs/views-quality.md)，已通过本地50项测试（含真实隔离PostgreSQL 17）。node95本轮SSH连接超时，新代码和数据库v4迁移尚未部署到该机；其最后确认版本仍为前一轮。
+2026-10-18新增最小发布与本地合成闭环，验证记录见实施状态。node95目前离线；新视图、质量、发布代码与v4/v5迁移尚未在该机部署，最后确认版本仍为第二轮。真实图片与95业务数据库未复制到本机。
 
 ## 阅读入口
 

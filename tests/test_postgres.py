@@ -2,7 +2,6 @@
 
 import os
 import time
-import uuid
 import subprocess
 import sys
 import json
@@ -12,7 +11,6 @@ from datetime import datetime, timezone
 
 import psycopg
 import pytest
-from psycopg import sql
 
 from idp.catalog.ingest import SourceConfig, ingest
 from idp.catalog.postgres import Catalog
@@ -24,21 +22,6 @@ from idp.evaluation.pilot import run_pilot
 from idp.testing.fixtures import generate
 from idp.execution.worker import PROBE_SPEC, QUALITY_SPEC, enqueue_quality, enqueue_views, run_worker, view_spec
 from idp.operators.views import ViewConfig
-
-
-@pytest.fixture
-def catalog():
-    dsn = os.environ.get("IDP_TEST_DSN")
-    if not dsn:
-        pytest.skip("IDP_TEST_DSN not configured; PostgreSQL integration not measured")
-    schema = "idp_test_" + uuid.uuid4().hex
-    cat = Catalog(dsn, schema)
-    try:
-        yield cat
-    finally:
-        assert schema.startswith("idp_test_") and len(schema) == 41
-        with psycopg.connect(dsn) as conn:
-            conn.execute(sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(schema)))
 
 
 def test_migration_and_idempotent_ingestion_sources(catalog, tmp_path):
@@ -159,11 +142,17 @@ def test_batch_claims_respect_global_pool_and_pause(catalog):
 def test_backoff_quarantine_and_manual_replay(catalog):
     catalog.migrate()
     queue = Queue(catalog)
-    key = queue.enqueue(spec(), [digest("retry")], max_attempts=2, retry_base=.1)
+    key = queue.enqueue(spec(), [digest("retry")], max_attempts=2, retry_base=60)
     first = queue.claim("one", "cpu")
     assert queue.fail(key, "one", first["attempt_token"], "PROVIDER_TIMEOUT") == "retry_wait"
+    with catalog.connect() as conn:
+        delay = conn.execute("SELECT extract(epoch FROM available_at-clock_timestamp()) AS delay FROM jobs WHERE task_key=%s",
+                             (key,)).fetchone()["delay"]
+        assert 55 < delay <= 60
     assert queue.claim("too-early", "cpu") is None
-    time.sleep(.12)
+    # 用数据库时间推进可领取边界，不依赖连接能在100ms内完成。
+    with catalog.connect() as conn:
+        conn.execute("UPDATE jobs SET available_at=clock_timestamp()-interval '1 second' WHERE task_key=%s", (key,))
     second = queue.claim("two", "cpu")
     assert queue.fail(key, "two", second["attempt_token"], "RATE_LIMIT") == "quarantined"
     assert queue.claim("no-infinite-retry", "cpu") is None
