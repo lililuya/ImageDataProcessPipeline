@@ -4,12 +4,16 @@ from psycopg.types.json import Jsonb
 
 from idp.catalog.postgres import Catalog
 from idp.domain.identity import canonical_bytes
+from idp.domain.models import View
 from idp.execution.operators import OperatorSpec
 from idp.storage.local import LocalStore
 
 RETRYABLE = {"PROVIDER_TIMEOUT", "RATE_LIMIT", "IO_FAILURE", "WORKER_OOM", "EXECUTION_FAILURE"}
 PERMANENT = {"DECODE_CORRUPT_OR_UNSUPPORTED", "PIXEL_LIMIT", "FRAME_LIMIT",
-             "SCHEMA_INVALID", "ADAPTER_UNSUPPORTED", "INPUT_CHECKSUM_MISMATCH"}
+             "SCHEMA_INVALID", "ADAPTER_UNSUPPORTED", "INPUT_CHECKSUM_MISMATCH",
+             "ANIMATION_UNSUPPORTED", "IMAGE_MODE_UNSUPPORTED", "INVALID_ORIENTATION",
+             "ICC_PROFILE_INVALID_OR_UNSUPPORTED", "UNTAGGED_COLORSPACE_UNSUPPORTED",
+             "BUCKET_RATIO_UNREPRESENTABLE", "UPSCALE_REQUIRED", "ALPHA_REJECTED_BY_POLICY"}
 
 
 class Queue:
@@ -100,8 +104,14 @@ class Queue:
                 raise ValueError("LEASE_LOST")
 
     def complete(self, task_key: str, owner: str, token: int, result: dict,
-                 artifacts: tuple[str, ...] = (), store: LocalStore | None = None) -> None:
+                 artifacts: tuple[str, ...] = (), store: LocalStore | None = None,
+                 view_record: View | None = None, view_details: dict | None = None) -> None:
         canonical_bytes(result)
+        canonical_bytes(view_details)
+        if view_record is not None and view_record.output_checksum not in artifacts:
+            raise ValueError("VIEW_OUTPUT_ARTIFACT_REQUIRED")
+        if view_record is None and view_details is not None:
+            raise ValueError("VIEW_RECORD_REQUIRED")
         verified = []
         for checksum in sorted(set(artifacts)):
             if store is None:
@@ -123,6 +133,14 @@ class Queue:
                 conn.execute("INSERT INTO artifacts(checksum,uri,byte_size) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING",
                              (checksum, uri, size))
                 conn.execute("INSERT INTO job_artifacts VALUES(%s,%s)", (task_key, checksum))
+            if view_record is not None:
+                if record["inputs"] != [view_record.asset_id] or view_record.config_digest != record["spec"]["config_digest"]:
+                    raise ValueError("VIEW_JOB_MISMATCH")
+                conn.execute("""INSERT INTO views(view_id,task_key,asset_id,output_checksum,config_digest,record,details)
+                  VALUES(%s,%s,%s,%s,%s,%s,%s)""",
+                             (view_record.view_id, task_key, view_record.asset_id, view_record.output_checksum,
+                              view_record.config_digest, Jsonb(view_record.model_dump(mode="json")),
+                              Jsonb(view_details or {})))
             self._event(conn, task_key, token, "succeeded", owner)
 
     def fail(self, task_key: str, owner: str, token: int, code: str) -> str:
@@ -167,8 +185,9 @@ class Queue:
               FROM jobs GROUP BY resource,state""").fetchall()
             counts = {r["resource"] + ":" + r["state"]: r["n"] for r in rows}
             observations = conn.execute("SELECT count(*) AS n FROM observations").fetchone()["n"]
+            views = conn.execute("SELECT count(*) AS n FROM views").fetchone()["n"]
             ages = {r["resource"] + ":" + r["state"]: float(r["oldest_created_age_seconds"]) for r in rows}
             events = conn.execute("SELECT event,count(*) AS n FROM job_events GROUP BY event").fetchall()
-            return {"jobs": counts, "observations": observations,
+            return {"jobs": counts, "observations": observations, "views": views,
                     "oldest_created_age_seconds": ages,
                     "events": {r["event"]: r["n"] for r in events}}

@@ -6,6 +6,8 @@
 
 实际使用见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令、配方与manifest仍为拟议接口。
 
+2026-10-17新增[训练视图与质量观测](docs/views-quality.md)，已通过本地50项测试（含真实隔离PostgreSQL 17）。node95本轮SSH连接超时，新代码和数据库v4迁移尚未部署到该机；其最后确认版本仍为前一轮。
+
 ## 阅读入口
 
 - [提案与能力范围](openspec/changes/design-image-data-framework/proposal.md)

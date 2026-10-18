@@ -19,7 +19,7 @@ def probe(path: Path, max_pixels: int = 100_000_000, max_frames: int = 64) -> di
                             "mode": image.mode, "bands": list(image.getbands()),
                             "frames": frames, "exif_orientation": image.getexif().get(274, 1),
                             "icc_profile_present": bool(image.info.get("icc_profile")),
-                            "has_alpha": "A" in image.getbands() or "transparency" in image.info,
+                            "has_alpha": image.mode in {"RGBA", "LA", "PA"} or "transparency" in image.info,
                             "bit_depth": 16 if image.mode.startswith("I;16") else
                                 32 if image.mode in {"I", "F"} else 1 if image.mode == "1" else 8}
                 if frames > max_frames:

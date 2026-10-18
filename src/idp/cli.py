@@ -12,7 +12,10 @@ from idp.storage.local import LocalStore
 from idp.operators.probe import probe
 from idp.evaluation.pilot import run_pilot
 from idp.execution.queue import Queue
-from idp.execution.worker import enqueue_probes, run_worker
+from idp.execution.worker import enqueue_probes, enqueue_quality, enqueue_views, run_worker
+from idp.operators.views import ViewConfig
+from idp.operators.quality import quality_features
+from idp.curation.numeric import NumericRecipe, evaluate_numeric
 import psycopg
 
 
@@ -70,7 +73,19 @@ def main(argv=None) -> int:
     enqueue = job_commands.add_parser("enqueue-probes")
     enqueue.add_argument("--limit", type=int, default=64)
     enqueue.add_argument("--batch-id")
-    worker = commands.add_parser("worker", help="有界CPU解码worker，不执行语义模型")
+    quality_jobs = job_commands.add_parser("enqueue-quality")
+    quality_jobs.add_argument("--limit", type=int, default=64)
+    quality_jobs.add_argument("--batch-id")
+    view_jobs = job_commands.add_parser("enqueue-views")
+    view_jobs.add_argument("--config", required=True)
+    view_jobs.add_argument("--limit", type=int, default=64)
+    view_jobs.add_argument("--batch-id")
+    quality = commands.add_parser("quality", help="独立质量数值观测，不作语义审核")
+    quality.add_argument("path")
+    check = commands.add_parser("quality-check", help="按指定数值配方评估观测，不改原始资产")
+    check.add_argument("--recipe", required=True)
+    check.add_argument("--observation", required=True)
+    worker = commands.add_parser("worker", help="有界CPU解码、质量与视图worker，不执行语义模型")
     worker.add_argument("--max-jobs", type=int, default=64)
     worker.add_argument("--lease-seconds", type=float, default=60)
     args = parser.parse_args(argv)
@@ -97,8 +112,16 @@ def main(argv=None) -> int:
             elif args.jobs_command == "pool":
                 queue.configure_pool(args.resource, args.concurrency, args.paused)
                 result = {"resource": args.resource, "concurrency": args.concurrency, "paused": args.paused}
+            elif args.jobs_command == "enqueue-views":
+                result = enqueue_views(queue, ViewConfig.model_validate(_read(args.config)), args.limit, args.batch_id)
+            elif args.jobs_command == "enqueue-quality":
+                result = enqueue_quality(queue, args.limit, args.batch_id)
             else:
                 result = enqueue_probes(queue, args.limit, args.batch_id)
+        elif args.command == "quality":
+            result = quality_features(Path(args.path))
+        elif args.command == "quality-check":
+            result = evaluate_numeric(NumericRecipe.model_validate(_read(args.recipe)), _read(args.observation))
         elif args.command == "pilot":
             result = run_pilot(Path(args.directory), SourceConfig.model_validate(_read(args.source_config)),
                                LocalStore(Path(os.environ["IDP_OBJECT_ROOT"])),

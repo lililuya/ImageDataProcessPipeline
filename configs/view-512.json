@@ -1,0 +1,13 @@
+{
+  "target_area": 262144,
+  "alignment": 16,
+  "aspect_ratios": [[1, 1], [4, 3], [3, 4], [16, 9], [9, 16]],
+  "crop_mode": "center",
+  "seed": 42,
+  "allow_upscale": false,
+  "interpolation": "lanczos",
+  "alpha_policy": "preserve",
+  "background_rgb": null,
+  "color_policy": "normalize-srgb",
+  "max_pixels": 100000000
+}

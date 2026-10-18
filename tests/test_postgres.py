@@ -22,7 +22,8 @@ from idp.execution.queue import Queue
 from idp.storage.local import LocalStore
 from idp.evaluation.pilot import run_pilot
 from idp.testing.fixtures import generate
-from idp.execution.worker import PROBE_SPEC, run_worker
+from idp.execution.worker import PROBE_SPEC, QUALITY_SPEC, enqueue_quality, enqueue_views, run_worker, view_spec
+from idp.operators.views import ViewConfig
 
 
 @pytest.fixture
@@ -328,3 +329,99 @@ def test_jobs_cli_inspection_replay_and_metrics(catalog):
     assert queue.claim("paused", "cpu") is None
     cli("pool", "cpu", "--concurrency", "1")
     assert queue.claim("resumed", "cpu")["task_key"] == key
+
+
+def test_view_and_quality_jobs_atomic_registry_and_replay(catalog, tmp_path):
+    catalog.migrate()
+    root = tmp_path / "fixtures"
+    generate(root)
+    store = LocalStore(tmp_path / "objects")
+    cfg = SourceConfig(batch_id="views-pilot", source_name="synthetic", access_domain="private")
+    asset = ingest(root / "rotated.jpg", "rotated", cfg, store, catalog)
+    queue = Queue(catalog)
+    config = ViewConfig(target_area=32 ** 2)
+    first = enqueue_views(queue, config, batch_id="views-pilot")
+    assert enqueue_views(queue, config, batch_id="views-pilot") == first
+    enqueue_quality(queue, batch_id="views-pilot")
+    assert run_worker(queue, store)["outcomes"] == {"succeeded": 2}
+    assert run_worker(queue, store)["processed"] == 0
+    with catalog.connect() as conn:
+        view = conn.execute("SELECT record,details,output_checksum FROM views").fetchone()
+        assert view["record"]["asset_id"] == asset
+        assert view["record"]["orientation"] == 6
+        assert view["record"]["input_width"] == 64
+        assert view["record"]["input_height"] == 96
+        assert view["details"]["supervision_status"].startswith("requires-")
+        assert conn.execute("SELECT count(*) AS n FROM artifacts").fetchone()["n"] == 3
+        assert conn.execute("SELECT count(*) AS n FROM observations").fetchone()["n"] == 2
+    assert store.hash_file(store.path(view["output_checksum"])) == view["output_checksum"]
+    assert queue.metrics()["views"] == 1
+
+
+def test_new_view_config_and_input_failure_are_isolated(catalog, tmp_path):
+    catalog.migrate()
+    root = tmp_path / "fixtures"
+    generate(root)
+    store = LocalStore(tmp_path / "objects")
+    cfg = SourceConfig(batch_id="a", source_name="synthetic", access_domain="private")
+    good = ingest(root / "red.png", "good", cfg, store, catalog)
+    bad = ingest(root / "broken.png", "bad", cfg, store, catalog)
+    queue = Queue(catalog)
+    queue.enqueue(QUALITY_SPEC, [bad])
+    enqueue_views(queue, ViewConfig(target_area=32 ** 2), batch_id="a")
+    enqueue_views(queue, ViewConfig(target_area=16 ** 2), batch_id="a")
+    outcomes = run_worker(queue, store)["outcomes"]
+    assert outcomes["succeeded"] == 2 and outcomes["quarantined"] == 3
+    with catalog.connect() as conn:
+        records = conn.execute("SELECT record FROM views").fetchall()
+        assert len(records) == 2
+        assert len({r["record"]["config_digest"] for r in records}) == 2
+        assert all(r["record"]["asset_id"] == good for r in records)
+        assert conn.execute("SELECT max(attempts) AS n FROM jobs WHERE state='quarantined'").fetchone()["n"] == 1
+
+
+def test_view_registry_failure_does_not_publish_partial_success(catalog, tmp_path):
+    catalog.migrate()
+    root = tmp_path / "fixtures"
+    generate(root)
+    store = LocalStore(tmp_path / "objects")
+    cfg = SourceConfig(batch_id="a", source_name="synthetic", access_domain="private")
+    ingest(root / "red.png", "good", cfg, store, catalog)
+    queue = Queue(catalog)
+    config = ViewConfig(target_area=32 ** 2)
+    key = enqueue_views(queue, config, batch_id="a")["task_keys"][0]
+    with catalog.connect() as conn:
+        conn.execute("""CREATE FUNCTION reject_view() RETURNS trigger LANGUAGE plpgsql AS $$
+          BEGIN RAISE EXCEPTION 'injected view commit failure'; END $$""")
+        conn.execute("CREATE TRIGGER fail_view BEFORE INSERT ON views FOR EACH ROW EXECUTE FUNCTION reject_view()")
+    with pytest.raises(psycopg.Error):
+        run_worker(queue, store, ttl=5)
+    with catalog.connect() as conn:
+        assert conn.execute("SELECT count(*) AS n FROM observations").fetchone()["n"] == 0
+        assert conn.execute("SELECT count(*) AS n FROM job_artifacts").fetchone()["n"] == 0
+        assert conn.execute("SELECT count(*) AS n FROM views").fetchone()["n"] == 0
+        conn.execute("DROP TRIGGER fail_view ON views")
+        conn.execute("UPDATE jobs SET lease_expires_at=clock_timestamp()-interval '1 second' WHERE task_key=%s", (key,))
+    assert run_worker(queue, store)["outcomes"] == {"succeeded": 1}
+
+
+def test_view_quality_cli_and_config_dispatch(catalog, tmp_path):
+    catalog.migrate()
+    root = tmp_path / "fixtures"
+    generate(root)
+    store = LocalStore(tmp_path / "objects")
+    cfg = SourceConfig(batch_id="cli-a", source_name="synthetic", access_domain="private")
+    ingest(root / "red.png", "good", cfg, store, catalog)
+    config_file = tmp_path / "view.json"
+    config_file.write_text(ViewConfig(target_area=32 ** 2).model_dump_json(), encoding="utf-8")
+    env = {**os.environ, "IDP_DATABASE_DSN": catalog.dsn, "IDP_CATALOG_SCHEMA": catalog.schema,
+           "IDP_OBJECT_ROOT": str(store.root)}
+    for command in (
+        ["jobs", "enqueue-views", "--config", str(config_file), "--batch-id", "cli-a"],
+        ["jobs", "enqueue-quality", "--batch-id", "cli-a"],
+        ["worker", "--max-jobs", "4"],
+    ):
+        proc = subprocess.run([sys.executable, "-m", "idp.cli", *command], env=env,
+                              capture_output=True, text=True, encoding="utf-8")
+        assert proc.returncode == 0, "CLI failed; sensitive output omitted"
+    assert Queue(catalog).metrics()["views"] == 1

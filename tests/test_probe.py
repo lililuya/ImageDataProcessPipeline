@@ -18,6 +18,9 @@ def test_decode_formats_limits_and_failure(tmp_path):
     high = fixtures / "high.tiff"
     Image.new("I;16", (8, 8)).save(high)
     assert probe(high)["metadata"]["bit_depth"] == 16
+    lab = fixtures / "lab.tiff"
+    Image.new("LAB", (8, 8)).save(lab)
+    assert probe(lab)["metadata"]["has_alpha"] is False
 
 
 def test_io_failure_is_not_bad_image(monkeypatch, tmp_path):

@@ -80,6 +80,22 @@ MIGRATIONS = (
     CREATE INDEX job_events_task_idx ON job_events(task_key,event_id);
     CREATE INDEX jobs_retry_idx ON jobs(resource,state,available_at);
     """,
+    """
+    CREATE TABLE transform_configs (
+      config_digest text PRIMARY KEY CHECK(config_digest ~ '^sha256:[0-9a-f]{64}$'),
+      payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE views (
+      view_id text PRIMARY KEY CHECK(view_id ~ '^sha256:[0-9a-f]{64}$'),
+      task_key text NOT NULL UNIQUE REFERENCES jobs(task_key),
+      asset_id text NOT NULL REFERENCES assets(asset_id),
+      output_checksum text NOT NULL REFERENCES artifacts(checksum),
+      config_digest text NOT NULL REFERENCES transform_configs(config_digest),
+      record jsonb NOT NULL, details jsonb NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE INDEX views_asset_idx ON views(asset_id,config_digest);
+    """,
 )
 
 

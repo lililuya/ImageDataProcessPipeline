@@ -1,0 +1,10 @@
+{
+  "name": "numeric-example-only",
+  "version": "1",
+  "domain": "unverified-pilot",
+  "calibrated": false,
+  "rules": [
+    {"field": "width", "operator": "ge", "value": 512},
+    {"field": "height", "operator": "ge", "value": 512}
+  ]
+}

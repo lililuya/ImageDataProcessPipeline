@@ -39,3 +39,22 @@ def test_installed_cli(tmp_path):
                             capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0
     assert json.loads(result.stdout)["provenance"] == "synthetic"
+
+
+def test_quality_and_recipe_cli_without_database(tmp_path):
+    path = tmp_path / "fixtures"
+    generate(path)
+    observed = subprocess.run([sys.executable, "-m", "idp.cli", "quality", str(path / "red.png")],
+                              capture_output=True, text=True, encoding="utf-8")
+    assert observed.returncode == 0
+    observation = tmp_path / "observation.json"
+    observation.write_text(observed.stdout, encoding="utf-8")
+    recipe = tmp_path / "recipe.json"
+    recipe.write_text(json.dumps({"name": "pilot", "version": "1", "domain": "synthetic",
+                                  "rules": [{"field": "width", "operator": "ge", "value": 32}]}), encoding="utf-8")
+    result = subprocess.run([sys.executable, "-m", "idp.cli", "quality-check", "--recipe", str(recipe),
+                             "--observation", str(observation)], capture_output=True, text=True, encoding="utf-8")
+    assert result.returncode == 0
+    decision = json.loads(result.stdout)
+    assert decision["decision"] == "accept"
+    assert decision["passes_calibrated_rules"] is False
