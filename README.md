@@ -2,11 +2,13 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
+**最新规划：在现有ImageCaption CLI上建设版本管理、质量处理和进度看板。** 新change为[build-imagecaption-data-workbench](openspec/changes/build-imagecaption-data-workbench/proposal.md)，已写好提案、六项规格、设计和40项待实施任务。首批交付包括终端进度及只读网页看板，默认显示阶段、子步骤、工作量、失败/复核与断线状态；随后接入水印确认和联合裁剪、整图文字过滤、美学/像素分级、短中长描述及版本交付。该change尚未实施；运行时代码目标为ImageCaption，不能以本仓库旧底座的完成项代替目标集成验收。
+
 **当前状态：框架规格已建立，按OpenSpec持续实施，已完成21/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇、版本化选择配方与评分导入，以及最小T2I manifest/sidecar发布和实际读取；评分/标注模型、预算、GC、完整课程与多任务发布仍待实施。
 
 当前优先使用[Windows本地操作手册](docs/local-runbook.md)，运行`idp demo`可用合成素材完成接入→处理→发布→实际读取。其他说明见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令与配方不代表已实现。
 
-2026-10-18新增最小发布与本地合成闭环，验证记录见实施状态。node95目前离线；新视图、质量、发布代码与v4/v5迁移尚未在该机部署，最后确认版本仍为第二轮。真实图片与95业务数据库未复制到本机。
+2026-10-18新增最小发布与本地合成闭环，验证记录见实施状态。node95此前离线，2026-10-22已恢复只读连接；本仓库第三轮起的新代码及迁移仍未完成远端部署验收，最后确认的DataPipeline部署为第二轮。真实图片与95业务数据库未复制到本机。
 
 同日追加选择配方与v6迁移：固定模型/配置/输入版本，区分宽保留与评分门槛，将决策绑定发布；美学和画质模型的真实推理仍待接入，本轮未在95部署。
 
@@ -14,6 +16,10 @@
 
 ## 阅读入口
 
+- [ImageCaption最新产品提案](openspec/changes/build-imagecaption-data-workbench/proposal.md)
+- [CLI与看板、处理流程及版本设计](openspec/changes/build-imagecaption-data-workbench/design.md)
+- [看板行为与进度口径规格](openspec/changes/build-imagecaption-data-workbench/specs/imagecaption-cli-progress/spec.md)
+- [ImageCaption分阶段实施任务](openspec/changes/build-imagecaption-data-workbench/tasks.md)
 - [提案与能力范围](openspec/changes/design-image-data-framework/proposal.md)
 - [技术设计与架构图](openspec/changes/design-image-data-framework/design.md)
 - [十项能力规格](openspec/changes/design-image-data-framework/specs/)
@@ -24,7 +30,7 @@
 
 ## 目标全流程
 
-下图包含待实施环节；各能力现状以实施状态和CLI帮助为准。
+下图是原通用框架的目标流程，包含待实施环节；各能力现状以实施状态和CLI帮助为准。最新ImageCaption流程及水印裁剪策略见[新设计](openspec/changes/build-imagecaption-data-workbench/design.md)。
 
 ```mermaid
 flowchart TD
@@ -63,10 +69,11 @@ npm run spec:status
 
 ```powershell
 node node_modules/@fission-ai/openspec/bin/openspec.js status --change design-image-data-framework
+node node_modules/@fission-ai/openspec/bin/openspec.js status --change build-imagecaption-data-workbench
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-当前change是`design-image-data-framework`：proposal/specs/design/tasks均已准备；已验收任务逐项勾选，其余保持未完成。当前正在通过`$openspec-apply-change`实施，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，proposal/specs/design/tasks均已准备，实施进度为0/40；通过上面的显式命令查看其规划状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 

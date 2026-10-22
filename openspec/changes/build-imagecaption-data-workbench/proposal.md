@@ -1,0 +1,36 @@
+# Proposal
+
+## Why
+
+现有ImageCaption的CLI与独立批处理已经承担实际数据生产，但阶段产物、排除清单、标注变体和导出缺少统一的数据版本入口，direct CLI也未接入按图片统计的持续进度。用户需要在保留水印裁剪主流程的基础上，加入文字面积过滤、美学与像素策略、短中长描述，以及能显示阶段和阶段内部进度的看板。
+
+## What Changes
+
+- 以ImageCaption为运行时产品，CLI为主要执行入口；终端状态与只读网页看板进入第一批交付，共享持久进度来源。
+- 区分数据集、处理运行、候选/已发布版本及导出包；版本固定输入、图像视图、策略、模型、标注和结果摘要，支持比较、恢复与增量处理。
+- 将水印候选检测与确认分开；裁剪搜索同时满足保留面积、输出尺寸和障碍框约束，保存原图及排除原因。
+- 新增整图文字区域检测，以最大文字块和区域并集占比过滤主集，裁后复检；不把检测失败当作无文字。
+- 记录独立美学/技术画质与像素观测，按版本化策略分为主集、属性监督候选、待复核或不可处理；待复核样本不能自动成为水印负样本。
+- 复用现有caption适配与摘要工具，形成视图绑定的长/中/短描述、独立属性和完整条件导出。
+- 兼容旧CLI、旧水印策略及历史导出；新能力使用显式新策略，旧产物不原位改写。旧计划已验收项不等于新产品集成已完成。
+
+## Capabilities
+
+### New Capabilities
+
+- `imagecaption-dataset-versions`: 数据集、运行、版本、导出、历史纳管及增量引用。
+- `imagecaption-watermark-crops`: 水印候选确认、受约束裁剪及结果复核。
+- `imagecaption-text-region-filter`: 整图文字框观测、面积策略和裁后复检。
+- `imagecaption-quality-pools`: 质量评分、分类、配方校准与主/辅助/复核分流。
+- `imagecaption-caption-variants`: 短中长描述、属性监督、条件组装和导出兼容。
+- `imagecaption-cli-progress`: CLI内部计数、断点恢复、终端/网页看板及状态来源。
+
+### Modified Capabilities
+
+无已归档主规格。本change使用产品命名空间；旧`design-image-data-framework`的通用契约与21/70项实施记录保留，其未完成功能不作为本change的已交付能力。
+
+## Impact
+
+规划保存在本DataPipeline仓库并随其同步；目标代码为[lililuya/ImageCaption](https://github.com/lililuya/ImageCaption)的Python CLI/worker、PostgreSQL/API、direct batch适配和现有React进度页。后续实施须在目标仓库的完整checkout中进行，先确认基线与迁移边界，再将对应规格带入目标实施上下文；不将本地审阅缓存当作完整工程，也不直接混用两套数据库表结构。
+
+本次只交付规划。默认使用本地硬盘，模型适配依赖单独管理；不运行新模型、不改写远程历史批次。首版不扩展多参考/偏好训练、完整内容管理网页或分布式存储。真实图像、标注、批次路径、日志和模型不入Git；工程依据及公开模型事实见[研究依据](../../../docs/research-evidence.md)。
