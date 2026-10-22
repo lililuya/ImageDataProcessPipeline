@@ -6,6 +6,8 @@
 
 **当前状态：框架规格已建立，按OpenSpec持续实施，已完成21/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇、版本化选择配方与评分导入，以及最小T2I manifest/sidecar发布和实际读取；评分/标注模型、预算、GC、完整课程与多任务发布仍待实施。
 
+ImageCaption现已加入原始文件密度门控：参考值0.15 byte/pixel，可通过配方或CLI调整/关闭；裁后重编码不替代原始证据。已有prompt的[语义标签模型选型](docs/research-evidence.md#prompt语义标签化模型选型2026-10-22)已完成调研，标签器尚未部署或验收。
+
 当前优先使用[Windows本地操作手册](docs/local-runbook.md)，运行`idp demo`可用合成素材完成接入→处理→发布→实际读取。其他说明见[M0指南](docs/m0-guide.md)、[node95操作手册](docs/node95-runbook.md)、[持久处理与恢复](docs/durable-processing.md)及[实施状态](docs/implementation-status.md)。`idp --help`列出的命令可运行；设计文档中的其他命令与配方不代表已实现。
 
 2026-10-18新增最小发布与本地合成闭环，验证记录见实施状态。node95此前离线，2026-10-22已恢复只读连接；本仓库第三轮起的新代码及迁移仍未完成远端部署验收，最后确认的DataPipeline部署为第二轮。真实图片与95业务数据库未复制到本机。
@@ -73,7 +75,7 @@ node node_modules/@fission-ai/openspec/bin/openspec.js status --change build-ima
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，模块审核与容量验收为43/45项，质量模型独立开关完成后为45/47项；通过上面的显式命令及tasks查看最新验收状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，模块审核与容量验收为43/45项，质量模型独立开关完成后为45/47项，文件密度门控与prompt标签选型完成后为48/50项；通过上面的显式命令及tasks查看最新验收状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 
