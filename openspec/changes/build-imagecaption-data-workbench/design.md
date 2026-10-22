@@ -140,13 +140,17 @@ total = resolved + running + retry_wait + pending
 
 首版扩展现有React进度页与查询API，不新建独立前端项目。看板默认展示运行列表、阶段卡片和当前子步骤；详情展开分片/节点、结果原因和尝试记录。默认只显示匿名工程信息，无图片、caption或OCR预览。网页为只读，开始/暂停/恢复沿用CLI，避免引入第二套控制语义。
 
-拟议CLI能力（尚未实现，最终命令需兼容现有解析器）：
+v0.3实际CLI能力（参数以ImageCaption帮助和手册为准）：
 
 ```text
-ics dataset import-legacy ...
-ics run status <run-id> --json
-ics run watch <run-id>
-ics versions diff <version-a> <version-b>
+ics workbench build --dataset ... --input ... --state ... --objects ... --policy ...
+ics workbench import-legacy --dataset ... --manifest ... --state ...
+ics workbench status --run-id <run-id> --json
+ics workbench watch --state <state>
+ics workbench diff <manifest-a> <manifest-b>
+ics workbench dry-run --manifest ... --policy ...
+ics workbench retry --state ...
+ics workbench publish --state ... --output ... --config ...
 ```
 
 页面示意，以下全部为合成数字，不表示任何真实批次正在运行：
@@ -167,7 +171,7 @@ ics versions diff <version-a> <version-b>
 
 ### 8. 实施边界与验收顺序
 
-2026-10-22首版实现落在完整ImageCaption checkout，新增`ics workbench prepare/create/list/status/watch/sync`及`#workbench`页面。该增量接通版本骨架、CPU准备入口和一个既有direct入口；上述目标架构中的完整谱系、阶段代次重开、全部算子与训练发布仍待实施。实际实现与任务证据见[首版记录](../../../docs/imagecaption-v0.2-status.md)，不能将本设计全部段落解释为v0.2已实现。
+2026-10-22的v0.3在完整ImageCaption checkout接通上述新CLI、资产/导出映射、视图缓存、阶段代次、质量处理、三档描述和参考加载器发布，见[v0.3记录](../../../docs/imagecaption-v0.3-status.md)。新build具有17阶段内部计数，通用direct的扫描、YOLO、OCR、prepare、JoyCaption与portable export已接入可选钩子，特定定制包装器仍须接入。版本ready禁止改变数据内容；同一冻结manifest更换导出配置，可仅重开package代次，保留先前导出及ready状态。
 
 P0核对目标完整checkout的基线、API/表迁移和旧CLI兼容，创建版本/运行骨架与合成夹具。P1优先交付内部进度、终端watch和只读网页看板，接通现有处理阶段。P2完善水印确认/联合裁剪及整图文字过滤。P3接入美学和分流。P4纳管三档描述、最终条件和导出。P5做小批与恢复验收。
 
@@ -196,3 +200,5 @@ P0核对目标完整checkout的基线、API/表迁移和旧CLI兼容，创建版
 ## Open Questions
 
 实施校准时填写具体美学/文字模型、自动确认及面积阈值、目标训练器、资源并发、进度刷新与过期时限。它们通过已定义的适配器和配置进入版本，不改变上述行为契约；未填写或未测的路径保持待配置/待校准状态。
+
+当前适配选择为ArtiMuse公开论文权重、DeQA Mix3、Paddle TextDetection和既有YOLO；真实参数仍待领域校准。冻结权重/源码/目标tokenizer的实际内容SHA，运行前校验；caption审核、正常文字属性和辅助准入绑定实际视图。参考混合适配器为`ics_manifest_v1`，用户最终训练器及其完整模板尚待明确。

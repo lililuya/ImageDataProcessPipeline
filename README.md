@@ -2,7 +2,7 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**最新交付：ImageCaption v0.2本地首版，含版本目录、CPU准备入口、终端进度与只读网页看板。** [build-imagecaption-data-workbench](openspec/changes/build-imagecaption-data-workbench/proposal.md)累计完成7/40项，代码位于ImageCaption完整checkout。阶段、子步骤、工作量、失败/复核与断线状态已接通；水印优化、整图文字过滤、美学模型、短中长描述及训练发布继续实施。实际范围和证据见[首版实施记录](docs/imagecaption-v0.2-status.md)，不能以本仓库旧底座的完成项代替目标集成验收。
+**最新交付：ImageCaption v0.3版本化质量流程。** [build-imagecaption-data-workbench](openspec/changes/build-imagecaption-data-workbench/proposal.md)累计38/40项：17阶段CLI/看板、联合水印裁剪、整图文字、质量分池、短中长描述、完整条件、版本差异和实际读取发布已接通。定制旧direct进度与真实质量校准仍待验收。代码位于ImageCaption，范围与证据见[v0.3记录](docs/imagecaption-v0.3-status.md)；[v0.2记录](docs/imagecaption-v0.2-status.md)保留为历史，不将合成验收等同真实筛选或训练收益。
 
 **当前状态：框架规格已建立，按OpenSpec持续实施，已完成21/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇、版本化选择配方与评分导入，以及最小T2I manifest/sidecar发布和实际读取；评分/标注模型、预算、GC、完整课程与多任务发布仍待实施。
 
@@ -12,7 +12,7 @@
 
 同日追加选择配方与v6迁移：固定模型/配置/输入版本，区分宽保留与评分门槛，将决策绑定发布；美学和画质模型的真实推理仍待接入，本轮未在95部署。
 
-2026-10-22完成[水印监督与完整条件链路复核](docs/research-evidence.md#watermark-conditioning-audit)：MOSS宽保留同时使用属性监督和推理负向条件。当前评分引用不自动进入训练文本，结构化属性、视图同步及最终条件组装仍待实现；本次仅补充审核结论，完成项不变。
+2026-10-22完成[水印监督与完整条件链路复核](docs/research-evidence.md#watermark-conditioning-audit)：MOSS宽保留同时使用属性监督和推理负向条件。原通用底座的评分引用不自动进入训练文本；随后ImageCaption v0.3已实现视图属性、完整条件和参考加载器消费，外部训练器与实际控制收益仍待验收。
 
 ## 阅读入口
 
