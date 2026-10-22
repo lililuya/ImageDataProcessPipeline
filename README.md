@@ -2,7 +2,7 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**最新规划：在现有ImageCaption CLI上建设版本管理、质量处理和进度看板。** 新change为[build-imagecaption-data-workbench](openspec/changes/build-imagecaption-data-workbench/proposal.md)，已写好提案、六项规格、设计和40项待实施任务。首批交付包括终端进度及只读网页看板，默认显示阶段、子步骤、工作量、失败/复核与断线状态；随后接入水印确认和联合裁剪、整图文字过滤、美学/像素分级、短中长描述及版本交付。该change尚未实施；运行时代码目标为ImageCaption，不能以本仓库旧底座的完成项代替目标集成验收。
+**最新交付：ImageCaption v0.2本地首版，含版本目录、CPU准备入口、终端进度与只读网页看板。** [build-imagecaption-data-workbench](openspec/changes/build-imagecaption-data-workbench/proposal.md)累计完成7/40项，代码位于ImageCaption完整checkout。阶段、子步骤、工作量、失败/复核与断线状态已接通；水印优化、整图文字过滤、美学模型、短中长描述及训练发布继续实施。实际范围和证据见[首版实施记录](docs/imagecaption-v0.2-status.md)，不能以本仓库旧底座的完成项代替目标集成验收。
 
 **当前状态：框架规格已建立，按OpenSpec持续实施，已完成21/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇、版本化选择配方与评分导入，以及最小T2I manifest/sidecar发布和实际读取；评分/标注模型、预算、GC、完整课程与多任务发布仍待实施。
 
@@ -73,7 +73,7 @@ node node_modules/@fission-ai/openspec/bin/openspec.js status --change build-ima
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，proposal/specs/design/tasks均已准备，实施进度为0/40；通过上面的显式命令查看其规划状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，proposal/specs/design/tasks均已准备，实施进度为7/40；通过上面的显式命令查看其规划状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 

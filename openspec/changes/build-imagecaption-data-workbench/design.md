@@ -167,6 +167,8 @@ ics versions diff <version-a> <version-b>
 
 ### 8. 实施边界与验收顺序
 
+2026-10-22首版实现落在完整ImageCaption checkout，新增`ics workbench prepare/create/list/status/watch/sync`及`#workbench`页面。该增量接通版本骨架、CPU准备入口和一个既有direct入口；上述目标架构中的完整谱系、阶段代次重开、全部算子与训练发布仍待实施。实际实现与任务证据见[首版记录](../../../docs/imagecaption-v0.2-status.md)，不能将本设计全部段落解释为v0.2已实现。
+
 P0核对目标完整checkout的基线、API/表迁移和旧CLI兼容，创建版本/运行骨架与合成夹具。P1优先交付内部进度、终端watch和只读网页看板，接通现有处理阶段。P2完善水印确认/联合裁剪及整图文字过滤。P3接入美学和分流。P4纳管三档描述、最终条件和导出。P5做小批与恢复验收。
 
 规划文件在DataPipeline同步；实施需在ImageCaption工作目录绑定这份规格及明确的代码基线，再执行apply。源仓库现有schema/sql、CLI解析器与direct脚本必须走兼容迁移，不能以本仓库的通用底座测试通过代替目标集成测试。历史脚本/数据只读纳管，不在生产目录试验覆盖。

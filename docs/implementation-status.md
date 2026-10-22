@@ -4,7 +4,7 @@
 
 原底座累计21/70项；当前以第五轮本地结果为准，下文各轮数字为当时记录。node95此前离线，2026-10-22只读连接成功；第三轮起代码和迁移的远端部署仍未验收，不因连通恢复而提升部署状态。
 
-最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)，目标是在ImageCaption现有CLI上加入版本目录、终端及只读网页进度、水印确认/联合裁剪、整图文字过滤、质量分流和短中长描述。提案、六项规格、设计及40项实施任务已准备，**当前0/40，尚未实现或部署该产品扩展**。先接通现有阶段的进度，再接质量能力；本仓库已有底座测试不能替代ImageCaption集成验收。
+最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)，目标是在ImageCaption现有CLI上加入版本目录、终端及只读网页进度、水印确认/联合裁剪、整图文字过滤、质量分流和短中长描述。2026-10-22本地v0.2增量已实现版本骨架、CPU准备入口及看板，**当前7/40，node95尚未部署该扩展**。证据及缺口见[首版实施记录](imagecaption-v0.2-status.md)；本仓库已有底座测试不能替代ImageCaption集成验收。
 
 2026-10-22[复核MOSS水印监督与全流程](research-evidence.md#watermark-conditioning-audit)：明确区分筛选、属性标注、条件组装和推理引导。现有数值观测和选择器不构成属性条件训练；水印角色/可靠性、视图级属性同步、最终条件构建器及训练器消费验证仍待实现。本次仅修改文档，不增加完成项，没有运行模型或评估真实图片。
 
