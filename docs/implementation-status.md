@@ -4,7 +4,7 @@
 
 原底座累计21/70项；当前以第五轮本地结果为准，下文各轮数字为当时记录。node95此前离线，2026-10-22只读连接成功；第三轮起代码和迁移的远端部署仍未验收，不因连通恢复而提升部署状态。
 
-最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)。2026-10-22的v0.3已接通17阶段版本化质量流程、三档描述、完整条件和验证导出，**当前38/40**。node95仅在独立目录做模型与结构试点，生产未替换；旧direct全阶段进度和真实校准仍有缺口，见[v0.3记录](imagecaption-v0.3-status.md)。原底座21/70与本产品任务独立统计。
+最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)。2026-10-22的v0.3接通17阶段版本化质量流程、三档描述、完整条件和验证导出，验收38/40项；v0.4追加逐模块审核和性能任务后共45项，最新证据见[v0.4记录](imagecaption-v0.4-status.md)。node95仅在独立目录做模型与结构试点，生产未替换；旧direct全阶段进度和真实校准仍有缺口。[v0.3记录](imagecaption-v0.3-status.md)为历史基线，原底座21/70与本产品任务独立统计。
 
 此前的2026-10-22[MOSS链路复核](research-evidence.md#watermark-conditioning-audit)仅修改通用底座文档，明确数值筛选不构成属性条件训练。随后ImageCaption v0.3接入视图属性、完整条件及参考加载器；模型数值推理和合成消费证据见新产品记录，不改变下文原底座各轮的历史验收范围。
 
