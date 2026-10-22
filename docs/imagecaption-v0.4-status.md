@@ -18,7 +18,7 @@ ImageCaption中的`docs/workbench-module-audit.md`覆盖扫描、存储、像素
 
 真实输入只由本地程序处理，未查看像素或显示OCR/caption。GPU共享测试不终止他人任务，不清除系统页缓存；四卡没有独占实测，不能把单卡结果乘四后称为验收。CPU文字检测、模型加载和共享机械盘的持久化开销均纳入报告。人工作业等待、真实误检、审美门槛、描述事实质量和训练效果仍未验收。
 
-本轮追加7.1–7.5均有相应证据，累计**43/45项**；原任务2.5定制旧direct全阶段钩子和6.4人工校准保持未完成，不archive。
+追加7.1–7.5完成时为43/45项；随后质量模型独立开关8.1–8.2也已验收，当前累计**45/47项**。原任务2.5定制旧direct全阶段钩子和6.4人工校准保持未完成，不archive。
 
 ## 本轮验收结果
 
@@ -33,4 +33,25 @@ ImageCaption中的`docs/workbench-module-audit.md`覆盖扫描、存储、像素
 
 本地证据根为`E:/Codex_Data/ImageCaptionWorkbench/v0.4`；node95证据根为`/mnt/hd4/ImageCaptionWorkbench/v0.4`。源代码测试快照与最终Git代码分别留证，没有覆盖原生产项目。用户授权的GPU 2测试已经结束，其他三卡训练未中断。
 
-运行时代码已同步至ImageCaption提交[`bce7ae7`](https://github.com/lililuya/ImageCaption/commit/bce7ae7a4d2578ec3afccf27c6f4386e707688a4)，保留在[草稿PR #1](https://github.com/lililuya/ImageCaption/pull/1)，未合并主分支。
+模块审核与性能验证对应ImageCaption提交[`bce7ae7`](https://github.com/lililuya/ImageCaption/commit/bce7ae7a4d2578ec3afccf27c6f4386e707688a4)，保留在[草稿PR #1](https://github.com/lililuya/ImageCaption/pull/1)，未合并主分支。
+
+## 追加：ArtiMuse与DeQA独立执行开关
+
+两项评分默认开启，分别通过`quality.aesthetic.enabled`、`quality.technical.enabled`或CLI的`--no-aesthetic`、`--no-technical`关闭；显式`--aesthetic`、`--technical`可覆盖配方。`build`和`dry-run`使用同一套配置解析，`required:false`仍表示执行评分但不按分数筛选。
+
+关闭后跳过该模型的文件校验、加载、推理及校准报告依赖；观察为`disabled/null`，不生成评分缓存或虚假通过结果。已有无开关配置的版本身份、登记重放和校准摘要保持兼容。开关写入冻结版本，在原state中改变开关会被拒绝，重新启用须创建新版本并补算缺失评分。
+
+终端、本地/API快照和网页明确显示“已关闭”，评分工作量为零且不计入验收分母；保留原`stage_count`字段口径，追加关闭数及开启阶段数。其他像素、水印、文字、描述审核与发布检查继续生效。dry-run将关闭与未知分开统计，不将历史分数当作关闭版本的新观测。
+
+关闭评分后新进入主集的样本，dry-run同时列出缺失描述/完整条件涉及的阶段与候选数；已有绑定当前视图的描述保留复用资格，不把所有阶段范围都当作必须执行的GPU任务。
+
+验证仅使用本地合成夹具，未访问真实图片、语义结果或GPU，也未改动现有8841服务：
+
+- Workbench专项**69项全部通过**，覆盖四种开关组合、模型路径不可访问时关闭可运行、校准绑定、分流、实际导出读取、版本冻结、恢复及服务端重放/事务回滚。
+- 全量**255项：243通过、2跳过、10项失败/错误**；失败集合与244项旧基线相同，涉及旧CPU任务领取、Windows `fcntl`和日志上传夹具，未因本改动新增失败。
+- 前端TypeScript/Vite构建成功；独立临时端口、合成API和无头Edge完成四种组合、四次刷新及1440/760/480px检查，共166项断言，无溢出、浏览器错误、写请求或媒体请求。
+- OpenSpec严格校验2项通过。仓库外证据为本地v0.4根中的`tests-quality-switches.log`、`full-tests-quality-switches.log`及`browser-quality-switches.log`；dry-run最终复核扩展既有测试并再次通过，记录于`quality-switch-dry-run-test.log`。运行时使用说明见`docs/workbench-v0.3.md`。
+
+本次开关在本地完成实施和验证，未部署到node95，不将此前实测速度视为关闭后的新吞吐结果。
+
+质量模型开关对应运行时提交[`ced37b6`](https://github.com/lililuya/ImageCaption/commit/ced37b60ad192d1f31c2b71189dba6f0439cd28a)，已同步至原草稿PR #1分支。
