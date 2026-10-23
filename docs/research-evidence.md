@@ -210,6 +210,12 @@ flowchart TD
 
 本轮交付选型与契约建议，没有下载、部署或接入上述标签模型，也没有真实标签质量与吞吐结论。
 
-## OpenSpec 使用依据
+## 标签、长中短描述与加速复核（2026-10-23）
+
+完整分析见[描述、语义标签与吞吐路线复核](caption-tagging-and-throughput-review.md)。新增核对MOSS后训练指南与arXiv v1、LLaDA附录、RECAP、SD3、FaithScore，以及JoyCaption、Florence-2、WD、vLLM/TGI的官方材料。保留旧GitHub PDF证据版本，不以新报告静默替代。
+
+工程建议为：长描述绑定实际视图，中短从同一父long独立压缩；文本标签保存实体关系、原文证据、否定与未知状态，另存而不默认改写训练prompt。当前英文集合式一致性检查不足以证明中文语义保真，生成预算也不保证长度阶梯。加速先处理SSD元数据、无效重载，再用固定任务/质量口径比较批处理和四卡拓扑。研究完成不代表标签器、自动语义审核或四卡执行已接入；各项实验与验收层级见新文档E0–E7。
+
+## OpenSpec工作流依据
 
 采用[官方 OpenSpec](https://github.com/Fission-AI/OpenSpec)的 proposal → specs → design → tasks → apply → archive 流程。本仓库固定CLI版本1.14.2。当前规划已完成并持续实施，最新任务证据见[实施状态](implementation-status.md)与[tasks](../openspec/changes/design-image-data-framework/tasks.md)；语法校验成功不等同于系统功能测试成功。

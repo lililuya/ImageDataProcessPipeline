@@ -2,7 +2,7 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
-**最新工作：ImageCaption v0.4模块审核、性能验证与质量模型开关。** 在v0.3的17阶段CLI/看板、联合水印裁剪、整图文字、质量分池、短中长描述及版本交付上，补充恢复核验、精确像素去重、元数据分盘和可复现性能工具。ArtiMuse与DeQA现可独立关闭，CLI和看板明确显示关闭状态。真实样本由程序处理，只查看数字与形式结果，四卡容量与实测严格区分。范围见[v0.4记录](docs/imagecaption-v0.4-status.md)，任务见[当前change](openspec/changes/build-imagecaption-data-workbench/tasks.md)。定制旧direct进度和真实质量校准仍待验收；[v0.3记录](docs/imagecaption-v0.3-status.md)与[v0.2记录](docs/imagecaption-v0.2-status.md)保留为历史。
+**最新工作：ImageCaption v0.5描述研究、看板引导与恢复。** 看板增加首次使用、当前动作、问题定位和诊断下载；修复兼容描述worker的无效重载及发布失败状态。新增[标签、长中短与吞吐研究](docs/caption-tagging-and-throughput-review.md)，明确文本证据、实体关系与视觉审核的边界。96项Workbench回归和227项合成浏览器检查通过；本轮没有新的GPU/四卡吞吐或真实语义质量验收。范围见[v0.5记录](docs/imagecaption-v0.5-status.md)，任务见[当前change](openspec/changes/build-imagecaption-data-workbench/tasks.md)。定制旧direct进度和真实质量校准仍待验收；[v0.4记录](docs/imagecaption-v0.4-status.md)、[v0.3记录](docs/imagecaption-v0.3-status.md)与[v0.2记录](docs/imagecaption-v0.2-status.md)保留为历史。
 
 **当前状态：框架规格已建立，按OpenSpec持续实施，已完成21/70项。** 本地有完整项目源码、规格与测试，整个系统尚未全部实现。已有接入、持久CPU处理、视图、数值质量观测、精确重复来源簇、版本化选择配方与评分导入，以及最小T2I manifest/sidecar发布和实际读取；评分/标注模型、预算、GC、完整课程与多任务发布仍待实施。
 
@@ -22,6 +22,8 @@ ImageCaption现已加入原始文件密度门控：参考值0.15 byte/pixel，�
 - [CLI与看板、处理流程及版本设计](openspec/changes/build-imagecaption-data-workbench/design.md)
 - [看板行为与进度口径规格](openspec/changes/build-imagecaption-data-workbench/specs/imagecaption-cli-progress/spec.md)
 - [ImageCaption分阶段实施任务](openspec/changes/build-imagecaption-data-workbench/tasks.md)
+- [标签、三档描述与加速研究](docs/caption-tagging-and-throughput-review.md)
+- [看板使用与排错手册](https://github.com/lililuya/ImageCaption/blob/codex/imagecaption-workbench-v0.2/docs/workbench-dashboard-guide.md)
 - [提案与能力范围](openspec/changes/design-image-data-framework/proposal.md)
 - [技术设计与架构图](openspec/changes/design-image-data-framework/design.md)
 - [十项能力规格](openspec/changes/design-image-data-framework/specs/)
@@ -75,7 +77,7 @@ node node_modules/@fission-ai/openspec/bin/openspec.js status --change build-ima
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，模块审核与容量验收为43/45项，质量模型独立开关完成后为45/47项，文件密度门控与prompt标签选型完成后为48/50项；通过上面的显式命令及tasks查看最新验收状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，v0.4追加模块审核、质量开关、文件密度门控与标签选型后为48/50项；v0.5研究、看板与恢复验收后为52/54项。通过上面的显式命令及tasks查看最新验收状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 
