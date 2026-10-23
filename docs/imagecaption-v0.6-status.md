@@ -1,6 +1,6 @@
 # ImageCaption v0.6：待复核草稿、离线审阅与单卡试点
 
-记录日期：2026-10-23。**本文记录已完成的形式验收与仍待完成的仓库同步**：新增草稿与审阅导出已通过本地回归和合成浏览器检查；node95已完成32张原主版本、网络中断恢复、三个评分开关版本及short上限192的精修版本v0005。精修仅新增32次short调用，96条描述生成均为ok、审核均为review。独立8张低干扰对照已完成且有效；最终审阅ZIP已下载、解包并通过本地校验，可供用户检查。双仓库最终同步与用户内容审核仍待补证据，不能将形式验收称为质量验收或训练发布。
+记录日期：2026-10-23。**本文记录v0.6初代审阅交付的形式验收与仓库同步**：新增草稿与审阅导出已通过本地回归和合成浏览器检查；node95已完成32张原主版本、网络中断恢复、三个评分开关版本及short上限192的精修版本v0005。精修仅新增32次short调用，96条描述生成均为ok、审核均为review。独立8张低干扰对照已完成且有效；最终审阅ZIP已下载、解包并通过本地校验，代码和规格已同步。用户内容审核仍待完成，不能将形式验收称为质量验收或训练发布。
 
 范围来自[当前提案](../openspec/changes/build-imagecaption-data-workbench/proposal.md)、[设计决策10](../openspec/changes/build-imagecaption-data-workbench/design.md)及[任务11](../openspec/changes/build-imagecaption-data-workbench/tasks.md)。本轮只观察处理形式、工程状态和数值；助手不查看真实图片、caption、OCR或私有来源映射。真实内容由用户在仓库外的审阅包中自行检查，视觉质量、裁剪正确性和描述事实仍待人工审核。
 
@@ -164,7 +164,7 @@ v0005的long/medium/short预算分别为512/256/192，三档各32条ok，共96�
 
 | 项目 | 当前状态 | 完成后必须补充的证据 |
 |---|---|---|
-| 最终源码/规格交付 | 待总验收补齐 | 两仓库最终提交、同步状态及实际部署身份 |
+| 最终源码/规格交付 | 已同步并核验 | 实测代码ba8ef2d、运行时文档d7f0f43、规划规格a74023f；后续提交仅收尾任务与交付记录 |
 | 用户质量审阅 | 待用户或授权审核者提供 | 水印误检、主体保留、文字/美学门槛与描述事实的校准证据 |
 
 独立8张已有完整build窗口；原32张完整墙钟仍缺失，生产规模的持续吞吐和四卡速度仍未验证。[v0.4历史测速](imagecaption-v0.4-status.md)继续保留为历史口径，不能与此次新worker、新代码及小样本profile拼成实测加速倍数。下一版可优先验证三项性能改动，均为建议，尚未实现或测得收益：
@@ -177,6 +177,6 @@ v0005的long/medium/short预算分别为512/256/192，三档各32条ok，共96�
 
 本轮冻结运行时提交为[`ba8ef2d`](https://github.com/lililuya/ImageCaption/commit/ba8ef2db8b0de26aab324ffda3e608594c40feb2)，对应Git tree `a8e5e07493a9fe9b4fd4a4765a7218b08ed0e8a2`；API已更新并通过成员同步回执，登记422不再是当前阻塞。验收摘要另外记录Python文件集合的内容摘要`5c6684da264469d3c2286244ed3dbbf115d5d2a505f008d372fa0ea6c3d6bbf6`，它与Git tree采用不同摘要口径，不能互相替代。
 
-DataPipeline及ImageCaption最终文档提交和远端同步仍待补齐；实际运行代码摘要已由源端完整性回执核验，审阅交付位置已见上文。本记录不声称草稿PR已合并，不覆盖旧生产批次，也不将源码同步等同于模型质量已验收。
+ImageCaption的实测代码已同步为`ba8ef2db8b0de26aab324ffda3e608594c40feb2`，验收和排错文档提交为[`d7f0f43`](https://github.com/lililuya/ImageCaption/commit/d7f0f43ec904914b139e3878c1babd34fb354f2e)，仍位于`codex/imagecaption-workbench-v0.2`及[Draft PR #1](https://github.com/lililuya/ImageCaption/pull/1)。DataPipeline代码规格及数值报告已同步至main的[`a74023f`](https://github.com/lililuya/ImageDataProcessPipeline/commit/a74023f7defee363a42cb633cc5c7f4874083165)，本次收尾提交更新完成状态。最终两仓库HEAD和远端一致性回执保存在仓库外`E:/Codex_Data/ImageCaptionWorkbench/v0.6/final-handoff.json`。实际运行代码摘要已由源端完整性回执核验，未合并草稿PR、未覆盖旧生产批次，也不将源码同步等同于模型质量已验收。
 
-任务11有6项，本次更新时任务表为**57/60项**快照，最终同步完成后由负责整体验收者追加证据并更新。原任务2.5的定制旧direct钩子及6.4的真实人工质量校准继续未完成，32张形式试点、草稿齐全或审阅包交付均不扩大其验收范围。修改规划后的严格OpenSpec校验结果须由本轮总验收追加；本报告没有修改规格、任务或运行时代码，change不得提前archive。
+本轮任务11的6项均已按形式试点、恢复、对照、交付与同步证据验收，当前为**58/60项**。原任务2.5的定制旧direct钩子及6.4的真实人工质量校准继续未完成，32张形式试点、草稿齐全或审阅包交付均不扩大其验收范围。OpenSpec严格校验2个change通过；本机npm未在PATH，使用项目固定版本CLI执行等价`validate --all --strict`。未完成项保留，change不归档。

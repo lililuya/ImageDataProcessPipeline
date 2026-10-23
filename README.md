@@ -80,7 +80,7 @@ node node_modules/@fission-ai/openspec/bin/openspec.js status --change build-ima
 node node_modules/@fission-ai/openspec/bin/openspec.js validate --all --strict
 ```
 
-`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，v0.4追加模块审核、质量开关、文件密度门控与标签选型后为48/50项；v0.5研究、看板与恢复验收后为52/54项。v0.6新增待复核草稿与审阅交付后扩展至60项，当前仍在验收中。通过上面的显式命令及tasks查看最新状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
+`design-image-data-framework`记录原底座的21/70项实施进度，`npm run spec:status`仍指向该change。`build-imagecaption-data-workbench`是当前产品方向，v0.3为38/40项，v0.4追加模块审核、质量开关、文件密度门控与标签选型后为48/50项；v0.5研究、看板与恢复验收后为52/54项。v0.6完成待复核草稿、单卡形式试点及审阅交付后为58/60项；定制旧direct进度和真实人工质量校准继续未完成。通过上面的显式命令及tasks查看最新状态。已验收任务逐项勾选，其余保持未完成，全部验收后再archive。`openspec/specs/`在归档前为空，当前规格位于change内部，避免把未实现行为当成现状。
 
 `.agents/skills/`为CLI生成的Codex工作流。Git仅同步代码、规格与小型合成测试数据，真实图像、产物、模型和凭据保存在仓库外。远程仓库：[lililuya/ImageDataProcessPipeline](https://github.com/lililuya/ImageDataProcessPipeline)。
 
