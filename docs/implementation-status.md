@@ -4,7 +4,11 @@
 
 原底座累计21/70项；当前以第五轮本地结果为准，下文各轮数字为当时记录。node95此前离线，2026-10-22只读连接成功；第三轮起代码和迁移的远端部署仍未验收，不因连通恢复而提升部署状态。
 
-最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)。2026-10-22的v0.3接通17阶段版本化质量流程、三档描述、完整条件和验证导出，验收38/40项；v0.4追加模块审核、性能验证、质量开关、文件密度门控与标签选型后为48/50项。2026-10-23的v0.5完成描述与标签研究、看板使用/排错、worker复用和发布故障修复，累计52/54项；最新96项Workbench回归及227项合成浏览器检查见[v0.5记录](imagecaption-v0.5-status.md)。本轮未操作node95或真实语义数据，标签模型尚未集成、四卡调度尚未实现。旧direct全阶段进度和真实校准仍有缺口。[v0.4记录](imagecaption-v0.4-status.md)与[v0.3记录](imagecaption-v0.3-status.md)为历史基线，原底座21/70与本产品任务独立统计。
+最新产品change为[build-imagecaption-data-workbench](../openspec/changes/build-imagecaption-data-workbench/proposal.md)，当前入口是[v0.6验收记录](imagecaption-v0.6-status.md)。新增严格布尔、默认关闭的review候选三档草稿及独立离线审阅包；保留原路由、人工审核与训练准入。**116项Workbench回归、93项本轮合成UI检查通过**，其中看板61项、离线审阅32项，未混入v0.5的评分开关浏览器历史计数。
+
+node95已完成32张原主版本、三个评分开关版本和真实网络中断恢复的形式验收：原输入字节不变，网络恢复及再次重放均0次新模型调用、manifest一致；开关版本复用已验证缓存，全部32张仍为review。原主版short上限96时有2条触顶；修订v0005只重算32条short，上限192，最终96条生成状态均ok、审核仍review，重放0次新推理且manifest一致。8张独立新结果缓存对照56次请求全部ok，完整墙钟1359.663秒，身份校验662.330秒；共享主机、页缓存未清，不能代表生产或四卡容量。最终32张/96描述审阅包已下载并通过本地校验。首轮原32张完整墙钟和资源窗口仍缺失，不以新8张补写原证据。助手仅查看形式与数值，不查看真实图片、caption或OCR。
+
+历史产品基线：v0.3为38/40项；v0.4追加模块审核、性能、质量开关、密度门控与标签选型后为48/50项；[v0.5](imagecaption-v0.5-status.md)完成描述研究、看板引导、worker复用及发布恢复后为52/54项。v0.6将任务总数扩展至60项，最终精修、对照与交付证据尚待补齐，勾选状态以[当前tasks](../openspec/changes/build-imagecaption-data-workbench/tasks.md)为准。标签模型尚未集成、四卡调度尚未实现，旧direct全阶段进度和真实质量校准仍有缺口。[v0.4记录](imagecaption-v0.4-status.md)与[v0.3记录](imagecaption-v0.3-status.md)继续保留；原底座21/70与本产品任务独立统计，下文各轮是原底座历史证据。
 
 此前的2026-10-22[MOSS链路复核](research-evidence.md#watermark-conditioning-audit)仅修改通用底座文档，明确数值筛选不构成属性条件训练。随后ImageCaption v0.3接入视图属性、完整条件及参考加载器；模型数值推理和合成消费证据见新产品记录，不改变下文原底座各轮的历史验收范围。
 

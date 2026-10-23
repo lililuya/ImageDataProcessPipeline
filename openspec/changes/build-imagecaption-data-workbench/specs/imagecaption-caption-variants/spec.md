@@ -6,6 +6,26 @@
 
 ## ADDED Requirements
 
+### Requirement: 显式生成待复核描述草稿
+
+系统 SHALL 将`captions.review_candidates`定义为缺省false的严格布尔配置，并随版本冻结；只有caption已启用、该开关为true且待复核成员具有有效实际视图时才增加三档草稿生成工作。系统 MUST NOT 因草稿生成成功改变review路由、批准审核或获得主集/辅助训练准入；未知、待校准和缺失证据保持原状态。
+
+#### Scenario: 显式为有效review视图生成三档
+- **WHEN** 配方开启caption及review_candidates且review成员的实际视图可读取、可解码并通过摘要校验
+- **THEN** 为该视图生成独立长/中/短草稿并保留父标注与审核状态，该成员仍处于review，不自动生成可训练结论。
+
+#### Scenario: 关闭或非法草稿开关
+- **WHEN** review_candidates省略或为false，或者输入字符串、数字、null等非布尔值
+- **THEN** 前两种保持既有生成范围，非法值在执行前拒绝；caption本身关闭时不因review_candidates为true而启动模型。
+
+#### Scenario: 无效视图或父描述失败
+- **WHEN** review成员缺少有效视图、图像字节损坏，或者其父long生成失败
+- **THEN** 无效视图不进入草稿生成，子摘要保持缺失或依赖阻断；不得从无关原图或历史描述填补并宣称三档成功。
+
+#### Scenario: 冻结后改变草稿范围
+- **WHEN** 用户在同一state改变review_candidates
+- **THEN** 拒绝改变旧版本工作集合，要求新冻结版本；旧结果及审核身份保持可追溯。
+
 ### Requirement: 同模型描述推理的驻留复用
 
 系统 SHALL 在worker支持逐请求参数时复用启动身份一致的模型进程，分别传递各变体的实际生成选项；模型、源码、设备或其他初始化配置变化时重新加载。复用进程 MUST NOT 合并长中短的标注、模板、缓存身份或审核状态。
