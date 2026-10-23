@@ -6,6 +6,22 @@
 
 ## ADDED Requirements
 
+### Requirement: 可选的视图绑定语义标签
+
+系统 SHALL 提供缺省false的严格布尔tags.enabled及CLI覆盖，在当前视图的成功长描述上产生封闭词表标签，限非露骨姿态、构图、视角、可见度和内容安全大类。系统 MUST 保存父annotation、view、词表、模板和模型身份，区分已识别、未知、不支持及生成失败；证据原文不得写入标签产物。标签格式通过不代表语义审核通过，也不自动进入训练条件。
+
+#### Scenario: 标签开关关闭或模型缺失
+- **WHEN** 标签关闭或启用但没有可用provider
+- **THEN** 关闭时跳过身份校验与模型调用并记录disabled，启用缺配置记录not_configured，均不得生成伪标签。
+
+#### Scenario: 父描述失败或来自其他视图
+- **WHEN** long失败、为空或view_id与当前视图不符
+- **THEN** 标签阶段报告dependency_failed，不调用模型或复用其他视图标签。
+
+#### Scenario: 标签响应越界或缺少来源证据
+- **WHEN** 响应包含词表外字段、标签、重复键或无法匹配父文本的证据
+- **THEN** 报告invalid且不接纳这些标签；成功结果仍待人工审核，审阅导出核验绑定且不回写ready。
+
 ### Requirement: 显式生成待复核描述草稿
 
 系统 SHALL 将`captions.review_candidates`定义为缺省false的严格布尔配置，并随版本冻结；只有caption已启用、该开关为true且待复核成员具有有效实际视图时才增加三档草稿生成工作。系统 MUST NOT 因草稿生成成功改变review路由、批准审核或获得主集/辅助训练准入；未知、待校准和缺失证据保持原状态。
