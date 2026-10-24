@@ -216,6 +216,10 @@ flowchart TD
 
 工程建议为：长描述绑定实际视图，中短从同一父long独立压缩；文本标签保存实体关系、原文证据、否定与未知状态，另存而不默认改写训练prompt。当前英文集合式一致性检查不足以证明中文语义保真，生成预算也不保证长度阶梯。加速先处理SSD元数据、无效重载，再用固定任务/质量口径比较批处理和四卡拓扑。研究完成不代表标签器、自动语义审核或四卡执行已接入；各项实验与验收层级见新文档E0–E7。
 
+## Togeari 执行层评估（2026-10-24）
+
+已对照官方提交 `c03eb96036d7f6559866b9d010d1363de2ea314d` 的调度、批处理、引擎协议、记录与性能材料，结论见 [Togeari 执行层评估](togeari-execution-assessment.md)。优先借鉴有界并行、分桶合批、常驻 worker 和队列计时；保留 ImageCaption 的版本、视图/父标注身份、质量/审核与发布契约。没有安装依赖或新增 GPU 测速；是否实际引入框架由与轻量执行器的受控对照决定，调度器微基准不能当作图片吞吐。
+
 ## OpenSpec工作流依据
 
 采用[官方 OpenSpec](https://github.com/Fission-AI/OpenSpec)的 proposal → specs → design → tasks → apply → archive 流程。本仓库固定CLI版本1.14.2。当前规划已完成并持续实施，最新任务证据见[实施状态](implementation-status.md)与[tasks](../openspec/changes/design-image-data-framework/tasks.md)；语法校验成功不等同于系统功能测试成功。
