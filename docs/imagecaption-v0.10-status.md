@@ -34,3 +34,5 @@
 - [运行时验收记录](https://github.com/lililuya/ImageCaption/blob/codex/imagecaption-workbench-v0.2/docs/workbench-v0.10-ui-validation.md)
 
 本轮仅合成素材与工程元数据，不查看真实图片、caption 或 OCR，不执行实际 GPU 推理；质量校准、模型收益和单卡／四卡吞吐不因 UI 验证提升验收状态。原 2.5 和 6.4 保持未完成，变更不归档。
+
+规格、手册与验收记录首次同步提交为 `d09b596dc0fda6095f88cff6b800319db04b82e0`；本条后续提交记录交付任务完成。产品change累计73/75项，保留上述两项待验收任务。
