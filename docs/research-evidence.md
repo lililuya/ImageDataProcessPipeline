@@ -220,6 +220,16 @@ flowchart TD
 
 已对照官方提交 `c03eb96036d7f6559866b9d010d1363de2ea314d` 的调度、批处理、引擎协议、记录与性能材料，结论见 [Togeari 执行层评估](togeari-execution-assessment.md)。优先借鉴有界并行、分桶合批、常驻 worker 和队列计时；保留 ImageCaption 的版本、视图/父标注身份、质量/审核与发布契约。没有安装依赖或新增 GPU 测速；是否实际引入框架由与轻量执行器的受控对照决定，调度器微基准不能当作图片吞吐。
 
+## Huihui Qwen3-VL 8B 独立 Caption 试验（2026-10-26）
+
+用户指定的[完整视觉语言模型](https://huggingface.co/huihui-ai/Huihui-Qwen3-VL-8B-Instruct-abliterated)以 `Qwen3VLForConditionalGeneration` 加载，固定修订 `b47a0690b22eaf1d9a63874d967a03781c90f9cf`。作者声明仅修改文本部分；这不是本项目对效果或行为的独立验证。
+
+[bitsandbytes 官方集成](https://huggingface.co/docs/transformers/quantization/bitsandbytes)提供 LLM.int8 与 NF4 加载量化。工程选择为同一源权重的 BF16、INT8、NF4 对照，保留视觉塔和输出头 BF16，通过运行时模块核对量化范围；量化省显存不预设提速。固定单卡、图像预算和输出 token，分别计量加载、首 token、预填充加生成、解码与峰值显存。
+
+另核对 [quant-mind AWQ-int4](https://huggingface.co/quant-mind/Huihui-Qwen3-VL-8B-Instruct-abliterated-AWQ-int4)，修订 `a3d00c0bed66881c9d2e0b74d8bdb7206bca2ca7`：配置为 compressed-tensors W4A16、group size 32，视觉塔和输出头不量化；作者记录 512 个 Flickr30k 校准样本及 vLLM 用法。这是可另测的候选，不等于本轮已完成 AWQ 或 vLLM 性能验收。名称含 FP8 不能证明视觉组件完整或运行时采用 FP8 kernel；只有文件 dtype、缺少有效量化配置的版本不纳入加速结论。
+
+推理部署于 node94，模型与环境按用户授权放在 `/net/node95/hd4` 独立目录。只用合成图片核验部署和速度，真实 Caption 效果由用户自行在 Demo 中评估；不把单图单卡结果外推为四卡系统吞吐。
+
 ## OpenSpec工作流依据
 
 采用[官方 OpenSpec](https://github.com/Fission-AI/OpenSpec)的 proposal → specs → design → tasks → apply → archive 流程。本仓库固定CLI版本1.14.2。当前规划已完成并持续实施，最新任务证据见[实施状态](implementation-status.md)与[tasks](../openspec/changes/design-image-data-framework/tasks.md)；语法校验成功不等同于系统功能测试成功。
