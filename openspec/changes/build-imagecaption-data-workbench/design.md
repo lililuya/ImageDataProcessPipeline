@@ -264,6 +264,10 @@ HTTP后端明确声明模型名、部署修订、vision/text能力、端点容�
 
 ## Open Questions
 
+### 追加：双评分关闭的完整吞吐试点
+
+新版本关闭quality.aesthetic.enabled和quality.technical.enabled，保留minimum及校准记录，禁用模型不加载。pixels/crop的min_short_edge均为512，其余门槛沿用已冻结真实配方（包括长边1920、0.15byte/pixel、文字面积及保留比例），旧版本身份不变。crop.enabled保持true，JoyCaption长中短512/256/192及待审草稿开关沿用。独立结果缓存拒绝把重放当推理吞吐；记录完整build墙钟、身份校验、分阶段耗时、模型调用、实际裁剪数和输出状态，不查看真实内容。node95无空闲卡时按用户授权使用node94空闲5090，报告网络盘数据/模型及本地元数据I/O条件，不外推四卡或node95本地盘速度。未校准裁剪仍受原准入约束，不伪造校准；未触发实际裁剪须单独报告，必要时以合成素材补充裁剪执行验证。
+
 ### 追加：Huihui caption独立试验（2026-10-26）
 
 提示词透明化：system缺省空且不发送；user与附加规则独立编辑，附加规则仅按两个换行显式连接。输出格式只控制事后校验，不能暗中追加模板；点击载入按钮才替换可见规则框。待发送消息与推理共用消息构造函数，完成后返回固定请求快照（图片用占位符），不随编辑更新、不写日志。展示固定模型原生chat_template.jinja并说明无tools/历史消息、视觉token由processor展开。API新增可选system_prompt和extra_rules，清空规则时不补默认。
