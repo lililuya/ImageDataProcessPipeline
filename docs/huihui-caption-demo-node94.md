@@ -19,3 +19,7 @@
 网页与隧道验收通过：1440/390px 布局、空输入后恢复、合成上传与生成、释放模型，以及 Gradio API 的 NF4→BF16 串行切换均成功。前端采用必要依赖链接，已排除整套旧环境引入的不兼容音频/量化库。共享盘上传可能超过客户端默认等待时间，核验脚本使用 180 秒超时，上传不计入模型基准。截图和 `browser-check.json` 在本机同一证据目录，远端 `reports/demo-api-check.json` 仅保存字符数和数值指标。六项无 GPU 契约检查及 OpenSpec 严格校验已通过。
 
 访问本机 `http://127.0.0.1:17864`，服务依赖 SSH 隧道；默认 BF16。操作说明见[运行时 README](https://github.com/lililuya/ImageCaption/blob/codex/imagecaption-workbench-v0.2/tools/caption_demo/README.md)。本次独立试验未完成原工作流的真实质量校准或四卡验收。
+
+同日追加JSON标签与临时公网测试：三种输出模式，固定标签结构、失败清空结构化结果并保留原文，格式通过不代表语义正确；不增加约束解码或隐式重试。公网为带认证的Gradio HTTPS分享，地址与口令仅在仓库外保存，本机入口也须登录。10项契约检查通过；公网未认证配置/上传/队列为401，已认证访问凭据文件为403；合成自由JSON与标签JSON均有效（52/89输出token），报告`public-json-check.json`只记录指标和键名。未改变生产版本或原单卡速度结论。
+
+公网浏览器的登录、格式切换、1440/390px布局、空输入恢复、合成上传生成和卸载均通过；本机`public-ui/`保留截图和`browser-check.json`。未查看用户真实图片或标注。
