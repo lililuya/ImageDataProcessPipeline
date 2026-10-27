@@ -1,5 +1,31 @@
 # 研究依据与工程映射
 
+## LyCORIS 评测拆分（2026-10-27）
+
+按 ICLR 2024 完整论文核查 [arXiv v2](https://arxiv.org/html/2309.14859v2) 的 §4、§5.2 及附录 D–G。作者独立 [LyCORIS-evaluation](https://github.com/cyber-meow/LyCORIS-evaluation/tree/7c5758c8338aa59c4601bb68db8d5112b15748c4) 已有图像相似度/SCD、CLIP 文图、Vendi、VGG19 Gram 风格、FD 和 IQA 等脚本，MIT 许可；其 setup.py 未声明运行依赖，不能直接当成本项目已部署能力。
+
+用户指定独立实现位于 [AllBench](https://github.com/lililuya/AllBench/tree/codex/lycoris-evaluation-v01)。本仓库保留已实现人工分层审计；原通用底座的 M4 模型归因、补数和结果导入仍待实施。AllBench 提供冻结协议、完整 base/adapted 矩阵、真实生成器、三个真实编码器与分组报告；统一逐提示 Vendi 是工程变体，不冒充完全一致的论文复现。下文保留首轮合成和底模证据，当前完整链路与正式效果验收分别记账。
+
+首轮交付：[AllBench PR #1](https://github.com/lililuya/AllBench/pull/1)，commit `ab0bfc9fa67de3a8ca4c3eff43c0fd96cf475a8a`，tree `c9d0d709980435fe6a453e83a913309f9eff8d83` 与本地逐字节一致。当时 Windows 与 node94 各32项回归通过，node94 编码重放新增0、检查点恢复指标重算0、报告摘要一致；首轮骨架为8/9项，后续追加真实生成器任务，仍不 archive。
+
+用户随后指定 [FLUX.2-klein-9B](https://huggingface.co/black-forest-labs/FLUX.2-klein-9B) 为真实生成器。官方4步蒸馏版配置固定 HF `92196c8e11f7b6cf2b7493e037d8c5345c559216`，本地 transformer raw SHA-256 与官方元数据一致：`0975d6b77b5f510b99547d6724a208e36527df654e8f6134f59ece3f9f30da58`。不得与非蒸馏 klein-base-9B 混称。已有 tokenizer 缺模板导致首次加载失败，随后向独立目录补齐官方 tokenizer，并将 `.jinja` 纳入摘要；原环境及共享权重未修改。
+
+node94 空闲 GPU1 RTX4090、BF16/CPU offload、512×512、guidance1.0、3条公开中性提示×seed7/11完成6张真实出图。先提交2张后注入中断，恢复只新增4张；全量重放新增0且不加载生成模型。6张均完成真实 DINOv2-L 编码，报告恢复重算0且SHA一致。Windows/node94各41项回归通过。图片推理/传输/保存合计202.616秒，不包含完整权重校验及全部加载；不作生产吞吐结论。仅 base_only，无参考保真、CLIP/VGG19、真实LoRA或人工质量验收。详细证据见 AllBench `docs/flux2-klein-generator.md`；原 M4任务不因此完成。
+
+首轮真实底模增量已同步同一 PR：commit `78db1c44546cc616395db7706f11f81df5254f12`，tree `8c914040a56f3854bb7c5943771000eca189bae9` 与本地完全一致，当时为11/12项。后续用户要求打通全部模块，新增第5组，正式概念/人工金标/固定预算数据对照3.4继续独立待办，不 archive。
+
+完整链路实测：node94同一空闲4090、匹配非蒸馏 klein-base-9B 与已有 rank32标准 LoRA，6类提示×2 seed×base/adapted=24张；逐张量核对336原始张量转换后的288个 A/B、144模块。12个配对摘要均变化，仅证明适配器影响输出。另2张公开生成参考夹具，训练预算未知，不能解释为真实概念泛化。DINOv2-L、DataComp CLIP ViT-L/14、VGG19 完成26张图片/6条文本，12组指标、108行CSV和HTML对照报告通过；6项base风格对照标记为正常未测。生成2→22、编码2→24图/6文本、评测checkpoint三次注入中断均恢复，完整重放新生成0、编码0、指标重算0、报告复用。
+
+最终 node94 56项回归通过，57.83秒；Windows55通过、1项符号链接权限测试跳过，21.79秒。13个实际执行源文件摘要与本地一致。生成身份 `1c9cb900c67e992102f35a393ef41789d52e5e6cea67ee73a6dc6b815aae9bea`，report SHA256 `4d98fbc7a9c0587c59c417a067ca3924c184264c8d96f233755d7162aab515b8`；证据位于94 `/net/node95/hd4/AllBench/20261027-full/evidence`，代码 `code-v2`、运行 `run-v2`。逐图耗时合计555.457秒，不含权重校验/全部加载等，不作生产吞吐结论。正式样本替换及统一启动器见 AllBench `docs/full-pipeline.md`、`docs/full-pipeline-validation.md`。
+
+完整链路发布至同一 [PR #1](https://github.com/lililuya/AllBench/pull/1)：commit `946f3043c349ccbe7f71a1c5f787ffb7aeb15cde`，tree `685a89abd2c00cad3175e00a91f9a63b31d331ec` 与本地逐字节一致，PR head 已复核；AllBench 工作区干净。当前 change 15/16项，只有3.4正式效果/人工金标/固定训练预算对照未完成，继续保持活跃。严格OpenSpec三个change校验全部通过；本机npm不在PATH，使用仓库既有Node/同一OpenSpec CLI等价执行校验。
+
+模型事实：[BFL模型注册代码](https://github.com/black-forest-labs/flux2/blob/main/src/flux2/util.py)为9B蒸馏与base使用同一 Klein9BParams，但默认分别为4步/CFG1、50步/CFG4。本轮非蒸馏权重201项名称/形状与该结构匹配，显式非蒸馏标志，4步/CFG4仅为工程连通试点。CLIP固定 [LAION DataComp](https://huggingface.co/laion/CLIP-ViT-L-14-DataComp.XL-s13B-b90K)修订 `84c9828e63dc9a9351d1fe637c346d4c1c4db341`；VGG使用[torchvision官方权重](https://docs.pytorch.org/vision/main/models/generated/torchvision.models.vgg19.html)，实际预处理/身份随特征记录，不宣称作者旧环境逐值复现。
+
+建议样本补齐独立留出参考、改内容/改风格、无触发词同类及无关提示、固定多 seed、概念/属性人工金标，以及固定训练预算和数据 release。详细指标、来源、差异与缺口见 AllBench 的 `docs/research-evidence.md`、`docs/sample-checklist.md`；规划见 [独立 change](../openspec/changes/extract-lora-benchmark-to-allbench/proposal.md)。这不改变下面历史研究记录的核查日期。
+
+## 既有研究记录
+
 基础资料核查日期：2026-10-15；2026-10-18追加MOSS-Image技术报告分析，2026-10-22复核其水印监督、官方推理代码与本项目条件链路，同日重核LLaDA文件密度门槛并追加prompt标签模型选型，其他资料不因此视为重新核查。本文是选定公开资料的工程分析，不宣称覆盖所有最新版本。论文按完整技术报告阅读，重点评估数据流程可复现性；不做投稿接收判断。公开方法、工程推断和未公开信息分别标记。
 
 | 资料 | 公开依据 | 本项目工程推断 | 边界 |

@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import subprocess
 import sys
 
@@ -33,12 +34,29 @@ def test_fixture_expectations(tmp_path):
 
 def test_installed_cli(tmp_path):
     result = subprocess.run([sys.executable, "-m", "idp.cli", "--help"],
-                            capture_output=True, text=True)
+                            capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0 and "fixtures" in result.stdout
     result = subprocess.run([sys.executable, "-m", "idp.cli", "fixtures", str(tmp_path / "generated")],
                             capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0
     assert json.loads(result.stdout)["provenance"] == "synthetic"
+
+
+@pytest.mark.parametrize("encoding", ["cp1252", "gbk"])
+def test_cli_uses_utf8_with_legacy_redirected_streams(tmp_path, encoding):
+    env = dict(os.environ, PYTHONIOENCODING=encoding)
+    help_result = subprocess.run([sys.executable, "-m", "idp.cli", "--help"],
+                                 env=env, capture_output=True, text=True, encoding="utf-8")
+    assert help_result.returncode == 0, help_result.stderr
+    assert "图像数据框架" in help_result.stdout
+    generated = tmp_path / "中文-fixtures"
+    result = subprocess.run([sys.executable, "-m", "idp.cli", "fixtures", str(generated)],
+                            env=env, capture_output=True, text=True, encoding="utf-8")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["provenance"] == "synthetic"
+    invalid = subprocess.run([sys.executable, "-m", "idp.cli", "无效命令"],
+                             env=env, capture_output=True, text=True, encoding="utf-8")
+    assert invalid.returncode == 2 and "无效命令" in invalid.stderr
 
 
 def test_quality_and_recipe_cli_without_database(tmp_path):
