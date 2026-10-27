@@ -35,6 +35,10 @@
 
 ## Decisions
 
+### 质量负面候选保留
+
+新配方显式开启quality_negatives.enabled，旧配方省略时保持原行为。门槛采用实际视图短长边及可选min_pixel_count、原始min_file_bytes和byte/pixel；等于门槛合格。负面观测绑定source/view/policy，另存客观失败原因，不推断模糊、美学或水印。保持原review/auxiliary路由，增加独立negative_candidates成员清单；即使未开启通用review草稿，也为有效负面候选生成选中的描述，始终保留待审身份。审阅包提供质量负面候选JSONL，包含图像、纯caption及元信息引用，明确不是已发布训练集；主集发布不能旁路。缺失观测保持unknown，重复和损坏不增加调用。新阈值和开关参与配置摘要、dry-run和冻结身份。
+
 ### 追加：单条长描述与多VLM（2026-10-27）
 
 captions.variants显式配置非空、无重复且包含long的变体集合；省略保持旧三档语义，当前示例与新部署设为[long]。未选择阶段注册disabled/total=0，不解析其provider、不加载权重、不生成空标注；条件、完整数、dry-run和发布依据实际变体集合。CLI的--caption-variants与--caption-profile覆盖后冻结，切换必须新state。
