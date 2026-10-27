@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from idp.domain.models import Asset, SourceRecord, TaskSample, View
@@ -33,6 +34,10 @@ def _catalog() -> Catalog:
 
 
 def main(argv=None) -> int:
+    # The CLI emits Chinese help and JSON; redirected Windows streams must use UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(prog="idp", description="图像数据框架：契约、夹具与分层审计")
     commands = parser.add_subparsers(dest="command", required=True)
     validate = commands.add_parser("validate", help="校验数据契约 JSON")
