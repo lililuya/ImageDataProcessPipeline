@@ -35,6 +35,14 @@
 
 ## Decisions
 
+### 追加：单条长描述与多VLM（2026-10-27）
+
+captions.variants显式配置非空、无重复且包含long的变体集合；省略保持旧三档语义，当前示例与新部署设为[long]。未选择阶段注册disabled/total=0，不解析其provider、不加载权重、不生成空标注；条件、完整数、dry-run和发布依据实际变体集合。CLI的--caption-variants与--caption-profile覆盖后冻结，切换必须新state。
+
+新manifest保存caption_provenance，各条annotation保存generator，记录model_name、model_revision、adapter、backend、权重摘要与provider摘要；历史缺失为未记录，不猜测旧模型。审阅包、TXT配套JSON、结果网页及配置展示保留来源和启用变体，关闭的中短不显示为生成失败。JoyCaption仍使用现有实际视图入口；新增qwen3_vl本机command适配器，沿用已测Qwen3VL模型与处理器调用方式，支持BF16及可选量化。远程VLM使用既有OpenAI兼容接口，plain text输出，模型切换不改变裁剪或审核契约。详细描述模板明确只描述可见事实和不确定性，生成成功不保证事实真实。
+
+以合成输入验证两种后端、关闭阶段无调用、单长导出/恢复、模型身份与配置切换、旧三档兼容和网页表达；可用GPU时以合成图进行真实模型冒烟测试，不读取真实语义内容。两仓库文档、配置示例和部署状态同步，未完成全change不归档。
+
 ### 1. CLI执行与只读看板共用状态
 
 沿用ImageCaption的CLI、控制API和PostgreSQL。direct执行器增加版本化事件适配；本地批处理继续写已验证结果和checkpoint，进度事件是这些提交事实的索引。数据库保存目录、运行登记和已接收的进度投影，网页不通过扫描大目录或解释任意stdout推断成功。

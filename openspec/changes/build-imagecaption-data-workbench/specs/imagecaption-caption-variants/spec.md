@@ -6,6 +6,18 @@
 
 ## ADDED Requirements
 
+### Requirement: 可配置描述变体与生成模型来源
+
+系统 SHALL 按冻结的captions.variants执行描述、条件和发布要求；当前新配方只选long，省略配置的历史配方保持三档。每个新结果版本与annotation SHALL 保存可读模型名称、后端和冻结身份；缺失历史来源 MUST NOT 被猜测补齐。模型通过profile或既有兼容API替换，支持JoyCaption和本机Huihui Qwen3-VL。
+
+#### Scenario: 只启用详细长描述
+- **WHEN** 配方选择[long]
+- **THEN** 中短阶段关闭且无模型校验或调用；导出、完整性及网页只要求长描述，草稿仍待审核。
+
+#### Scenario: 更换标注模型
+- **WHEN** 用户选择Qwen3-VL或另一已配置profile
+- **THEN** 新版本和单条标注记录实际生成来源，缓存及恢复身份隔离；同一state修改选择被拒绝。
+
 ### Requirement: 独立caption试验与可比测速
 
 系统 SHALL 支持生产流水线之外的可追溯图文模型试验，明确模型修订、量化范围与推理引擎；原版与量化测速必须固定GPU、图像预算、提示、输出长度和采样参数，冷加载与热生成分开统计。测速 MUST NOT 被解释为caption语义质量或全流水线吞吐验收。
