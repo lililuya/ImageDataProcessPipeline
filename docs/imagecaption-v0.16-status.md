@@ -1,5 +1,9 @@
 # v0.16：三模型驻留与热全流程验收
 
+同日后续配置调整：用户将输入/实际视图与裁后最小长边均改为512，短边保持512。node94另存`private/resident-policy-long512.json`供新queue使用，公开两个配方模板及驻留/交接手册同步更新；原冻结配方和下面实测证据保留长边1920。只变更两个长边字段，未启动模型或重测GPU吞吐。
+
+配置核验：远端离线model-plan通过，两份模板512×512接受/511×512不满足边界检查通过，10项质量负面与官方配置契约通过；文件密度仍0.15，其余私有配方字段逐项保持不变。
+
 2026-10-28，落实用户要求：在node94预加载YOLO水印、Paddle文字检测及JoyCaption，模型初始化一次，连续接收任务，单独测量排除初始化的完整流程。
 
 运行时新增`ResidentProviders`及`workbench serve/submit`本地私有队列。三个模型分别持有独立worker，跨阶段和跨批次复用；单批仍调用原版本化build，独立state和审核/负面候选边界保持。原普通build兼容。驻留worker退出或冻结身份变化时明确失败，不静默重载。使用者操作入口见运行时仓库[驻留手册](https://github.com/lililuya/ImageCaption/blob/codex/imagecaption-workbench-v0.2/docs/workbench-resident.md)。

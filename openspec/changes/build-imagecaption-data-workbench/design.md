@@ -1,5 +1,7 @@
 # Design
 
+2026-10-28门槛调整：后续新配方将`pixels.min_long_edge`和`crop.min_long_edge`从1920降为512，两个短边门槛仍512；文件密度0.15及其余规则不变。使用独立新配方和新queue/state，不修改历史冻结计划，不沿用旧速度作为新门槛实测。
+
 ## Resident inference follow-up (2026-10-28)
 
 新增显式驻留任务会话：YOLO、Paddle文字检测和JoyCaption各使用独立command worker，预加载及合成预热成功后才进入ready。多个worker使用各自独立模型环境、冻结配置和日志；本机任务串行，不引入四卡调度。会话通过本地私有队列接收新批次，每批仍调用同一版本化build，使用独立state、原图/视图/审核/负面候选契约；旧CLI build维持原行为。外部会话拥有worker生命周期，单批结束不关闭模型；worker失联或模型证据变化时明确失败，不把重新加载隐入热测速。
