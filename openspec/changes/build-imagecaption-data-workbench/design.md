@@ -1,5 +1,9 @@
 # Design
 
+## JoyCaption official preset follow-up
+
+以Space提交d0a1b8c39494884aa6ad4ff768189076ad054794为依据建立显式预设，固定模型修订、Transformers 4.51.0及Liger 0.5.9；系统与用户提示、temperature 0.6、top-p 0.9、512 tokens、seed=null共同冻结。旧无预设的worker行为保留；新预设只支持长描述。配置摘要显示预设、有效参数及系统提示摘要，不发送正文。Demo直接复用Captioner和参数校验，展示系统/用户提示、实际消息与生成参数，不追加隐藏指令。默认单图BF16，上传不进入生产版本。node94独立目录及空闲GPU部署，不修改共享环境，合成图片验证；认证公网分享，凭据和用户内容不入日志或Git。裁剪、EXIF规范化、审核及发布仍属于流水线，不声称与Space输出逐字相同。
+
 ## Context
 
 动机与交付范围见[proposal](proposal.md)。本change以ImageCaption的实际CLI使用方式为依据，规划保存在DataPipeline，运行时代码目标为ImageCaption。旧通用底座的21/70项完成记录保持独立，不能直接折算为本change进度。

@@ -259,3 +259,7 @@ flowchart TD
 ## OpenSpec工作流依据
 
 采用[官方 OpenSpec](https://github.com/Fission-AI/OpenSpec)的 proposal → specs → design → tasks → apply → archive 流程。本仓库固定CLI版本1.14.2。当前规划已完成并持续实施，最新任务证据见[实施状态](implementation-status.md)与[tasks](../openspec/changes/design-image-data-framework/tasks.md)；语法校验成功不等同于系统功能测试成功。
+
+## JoyCaption官方Space默认预设（2026-10-27）
+
+一手来源：[Space固定提交app.py](https://huggingface.co/spaces/fancyfeast/joy-caption-beta-one/blob/d0a1b8c39494884aa6ad4ff768189076ad054794/app.py)、[依赖](https://huggingface.co/spaces/fancyfeast/joy-caption-beta-one/blob/d0a1b8c39494884aa6ad4ff768189076ad054794/requirements.txt)、[模型修订](https://huggingface.co/fancyfeast/llama-joycaption-beta-one-hf-llava/tree/ebf414ea497a020da0f82df3913e5b6cb8e9663a)。默认Descriptive/long且无额外选项，temperature=0.6、top_p=0.9、max_new_tokens=512、不设置seed；BF16、Transformers 4.51.0，调用Liger的Llama内核补丁。v0.15显式采用该配置，旧适配器此前使用不同系统提示及固定seed，不能称完全同配置。官方没有承诺不同硬件或随机请求输出一致。工程实现与合成证据见[v0.15记录](imagecaption-v0.15-status.md)。

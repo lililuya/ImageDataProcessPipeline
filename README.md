@@ -2,6 +2,8 @@
 
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
+2026-10-27：[v0.15官方JoyCaption预设与Demo](docs/imagecaption-v0.15-status.md)：未来新配方采用官方Space默认提示、采样和BF16/Liger；node94部署认证Gradio，共用工作流实现。合成真实推理、配置与网页验证通过，历史版本不改写。
+
 2026-10-27：[LoRA 评测拆分到 AllBench](docs/research-evidence.md#lycoris-评测拆分2026-10-27)：node94已完成匹配 FLUX.2-klein-base-9B 的真实 LoRA 24张配对生成→DINO/CLIP/VGG19编码→全部指标→JSON/CSV/HTML报告，三阶段恢复及全链路重放零新增、零重算；node94 56项回归通过。正式 LoRA/样本可替换配置运行；本轮参考为生成夹具，人工概念效果和固定训练预算数据收益仍待验收。[实施任务](openspec/changes/extract-lora-benchmark-to-allbench/tasks.md)保持活跃，原底座 M4 不因此完成。
 
 2026-10-27：[v0.14质量负面保留与流程复核](docs/imagecaption-v0.14-status.md)：低像素/文件门槛的有效图继续生成long，保留独立候选证据、JSONL和网页筛选；226项后端回归与175项合成网页检查通过。本轮无新GPU/真实质量验收。

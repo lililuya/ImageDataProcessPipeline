@@ -6,6 +6,18 @@
 
 ## ADDED Requirements
 
+### Requirement: JoyCaption官方默认预设
+
+系统 SHALL 显式冻结官方Space默认提示、生成参数、模型修订与推理预设，并让工作流和Demo复用同一参数及推理实现；默认不固定随机种子，旧版本 MUST NOT 回写或被新版默认值解释。Demo须显示全部提示及实际参数，使用认证分享。
+
+#### Scenario: 工作流切换官方预设
+- **WHEN** 新配方选择官方JoyCaption预设
+- **THEN** 只生成实际视图的long，使用官方Descriptive/long默认提示和BF16/Liger配置，记录模型和参数来源；旧批次保留旧行为。
+
+#### Scenario: Demo调整参数
+- **WHEN** 用户修改可见提示、温度或长度并生成
+- **THEN** 模型直接接收这些值，显示实际消息快照和耗时，不附加隐藏规则；恢复默认后与工作流默认请求一致。
+
 ### Requirement: 可配置描述变体与生成模型来源
 
 系统 SHALL 按冻结的captions.variants执行描述、条件和发布要求；当前新配方只选long，省略配置的历史配方保持三档。每个新结果版本与annotation SHALL 保存可读模型名称、后端和冻结身份；缺失历史来源 MUST NOT 被猜测补齐。模型通过profile或既有兼容API替换，支持JoyCaption和本机Huihui Qwen3-VL。
