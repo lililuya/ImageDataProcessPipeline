@@ -1,5 +1,7 @@
 # ImageDataProcessPipeline
 
+2026-10-28：[ImageCaption流程核查与跨会话交接](docs/imagecaption-workflow-audit-20261028.md)：226项Workbench及5项官方配置回归通过；历史16张前置阶段101.29秒，独立排除JoyCaption身份校验。修正未来配方的系统盘缓存落点，交接文档明确当前仅待审交付、真实校准与训练发布条件。
+
 面向图像生成模型训练的数据处理框架设计：共享原始资产，按任务、领域与训练阶段生成可追溯的数据版本。
 
 2026-10-27：[v0.15官方JoyCaption预设与Demo](docs/imagecaption-v0.15-status.md)：未来新配方采用官方Space默认提示、采样和BF16/Liger；node94部署认证Gradio，共用工作流实现。合成真实推理、配置与网页验证通过，历史版本不改写。
